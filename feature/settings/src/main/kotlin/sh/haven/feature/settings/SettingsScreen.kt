@@ -1330,7 +1330,11 @@ fun SettingsScreen(
         val agentMacros by viewModel.agentMacros.collectAsState()
         val agentCodeExtractorEnabled by viewModel.agentCodeExtractorEnabled.collectAsState()
         val agentHyperlinkRoutingEnabled by viewModel.agentHyperlinkRoutingEnabled.collectAsState()
+        val mcpAutoApproveEnabled by viewModel.mcpAutoApproveEnabled.collectAsState()
+        val mcpCustomPort by viewModel.mcpCustomPort.collectAsState()
+        val mcpCustomHost by viewModel.mcpCustomHost.collectAsState()
         var showAgentMacroManagerDialog by remember { mutableStateOf(false) }
+        var showCustomEndpointDialog by remember { mutableStateOf(false) }
 
         CollapsibleSettingsSection(stringResource(R.string.settings_agent_category_title), settingsExpanded[11], { settingsExpanded[11] = !settingsExpanded[11] }) {
             SettingsToggleItem(
@@ -1362,6 +1366,23 @@ fun SettingsScreen(
                 checked = agentHyperlinkRoutingEnabled,
                 onCheckedChange = viewModel::setAgentHyperlinkRoutingEnabled,
             )
+            SettingsToggleItem(
+                icon = Icons.Filled.Bolt,
+                title = stringResource(R.string.settings_agent_autonomous_mode_title),
+                subtitle = stringResource(R.string.settings_agent_autonomous_mode_subtitle),
+                checked = mcpAutoApproveEnabled,
+                onCheckedChange = viewModel::setMcpAutoApproveEnabled,
+            )
+            SettingsItem(
+                icon = Icons.Filled.Hub,
+                title = stringResource(R.string.settings_agent_custom_endpoint_title),
+                subtitle = stringResource(
+                    R.string.settings_agent_custom_endpoint_subtitle,
+                    if (mcpCustomHost.isNotBlank()) mcpCustomHost else "127.0.0.1",
+                    mcpCustomPort
+                ),
+                onClick = { showCustomEndpointDialog = true },
+            )
         }
 
         if (showAgentMacroManagerDialog) {
@@ -1370,6 +1391,55 @@ fun SettingsScreen(
                 onDismiss = { showAgentMacroManagerDialog = false },
                 onSave = { updated -> viewModel.saveAgentMacros(updated) },
                 onResetDefaults = { viewModel.resetAgentMacros() }
+            )
+        }
+
+        if (showCustomEndpointDialog) {
+            var draftHost by remember { mutableStateOf(mcpCustomHost) }
+            var draftPort by remember { mutableStateOf(mcpCustomPort.toString()) }
+
+            AlertDialog(
+                onDismissRequest = { showCustomEndpointDialog = false },
+                title = { Text(stringResource(R.string.settings_agent_custom_endpoint_dialog_title)) },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = draftHost,
+                            onValueChange = { draftHost = it },
+                            label = { Text(stringResource(R.string.settings_agent_custom_host_label)) },
+                            placeholder = { Text("e.g. 100.64.0.5 or 127.0.0.1") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = draftPort,
+                            onValueChange = { draftPort = it },
+                            label = { Text(stringResource(R.string.settings_agent_custom_port_label)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.setMcpCustomHost(draftHost.trim())
+                            val p = draftPort.toIntOrNull() ?: 8730
+                            viewModel.setMcpCustomPort(if (p in 1024..65535) p else 8730)
+                            showCustomEndpointDialog = false
+                        }
+                    ) {
+                        Text(stringResource(R.string.common_save))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showCustomEndpointDialog = false }) {
+                        Text(stringResource(R.string.common_cancel))
+                    }
+                }
             )
         }
 

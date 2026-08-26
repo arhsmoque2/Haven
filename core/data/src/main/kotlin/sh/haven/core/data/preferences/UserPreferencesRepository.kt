@@ -289,6 +289,52 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    // --- MCP Autonomous Mode & Custom Endpoint Preferences ---
+    private val mcpAutoApproveEnabledKey = booleanPreferencesKey("mcp_auto_approve_enabled")
+    private val mcpCustomPortKey = intPreferencesKey("mcp_custom_port")
+    private val mcpCustomHostKey = stringPreferencesKey("mcp_custom_host")
+    private val mcpTailscaleBindEnabledKey = booleanPreferencesKey("mcp_tailscale_bind_enabled")
+
+    val mcpAutoApproveEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[mcpAutoApproveEnabledKey] ?: false
+    }
+
+    suspend fun setMcpAutoApproveEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[mcpAutoApproveEnabledKey] = enabled
+        }
+    }
+
+    val mcpCustomPort: Flow<Int> = dataStore.data.map { prefs ->
+        prefs[mcpCustomPortKey] ?: 8730
+    }
+
+    suspend fun setMcpCustomPort(port: Int) {
+        dataStore.edit { prefs ->
+            prefs[mcpCustomPortKey] = port
+        }
+    }
+
+    val mcpCustomHost: Flow<String> = dataStore.data.map { prefs ->
+        prefs[mcpCustomHostKey] ?: ""
+    }
+
+    suspend fun setMcpCustomHost(host: String) {
+        dataStore.edit { prefs ->
+            prefs[mcpCustomHostKey] = host
+        }
+    }
+
+    val mcpTailscaleBindEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[mcpTailscaleBindEnabledKey] ?: true
+    }
+
+    suspend fun setMcpTailscaleBindEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[mcpTailscaleBindEnabledKey] = enabled
+        }
+    }
+
     val biometricEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[biometricEnabledKey] ?: false
     }

@@ -322,6 +322,14 @@ class McpServer @Inject constructor(
     @Volatile
     private var trustLoopbackEnabled: Boolean = false
 
+    /** Master autonomous mode: bypass pairing and consent prompts across all origins. */
+    @Volatile
+    private var autoApproveEnabled: Boolean = false
+
+    /** User-customized host or domain name for endpoint display and routing. */
+    @Volatile
+    private var customHost: String = ""
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /** Open connections across the kernel-socket binders (keep-alive cap, Stage 4). */
@@ -530,20 +538,29 @@ class McpServer @Inject constructor(
         port = ss.localPort
         isRunning = true
         mcpStatusHolder.setRunning(true)
-        _endpointUrl.value = "http://127.0.0.1:$port/mcp"
+        customHost = runBlocking { preferencesRepository.mcpCustomHost.first() }
+        _endpointUrl.value = if (customHost.isNotBlank()) "http://$customHost:$port/mcp" else "http://127.0.0.1:$port/mcp"
         // Seed the in-memory allowlist mirror from DataStore. Subsequent
         // pairing approvals append to this on the dispatch thread.
         allowedClients = runBlocking { preferencesRepository.mcpAllowedClients.first() }
         clientTokenHashes = runBlocking { preferencesRepository.mcpClientTokenHashes.first() }
         trustLoopbackEnabled = runBlocking { preferencesRepository.trustLoopbackMcpClients.first() }
-        Log.i(TAG, "MCP server listening on ${_endpointUrl.value} (paired clients: ${allowedClients.size}, trustLoopback=$trustLoopbackEnabled)")
+        autoApproveEnabled = runBlocking { preferencesRepository.mcpAutoApproveEnabled.first() }
+        Log.i(TAG, "MCP server listening on ${_endpointUrl.value} (paired clients: ${allowedClients.size}, trustLoopback=$trustLoopbackEnabled, autoApprove=$autoApproveEnabled)")
 
-        // Track DataStore so an un-pair (revoking allowlist + token) takes
-        // effect immediately, not just after a restart (#mcp-backbone Stage 3).
+        // Track DataStore so an un-pair (revoking allowlist + token) or toggle
+        // takes effect immediately, not just after a restart.
         trustSyncJob?.cancel()
         trustSyncJob = scope.launch {
             launch { preferencesRepository.mcpAllowedClients.collect { allowedClients = it } }
             launch { preferencesRepository.mcpClientTokenHashes.collect { clientTokenHashes = it } }
+            launch { preferencesRepository.mcpAutoApproveEnabled.collect { autoApproveEnabled = it } }
+            launch {
+                preferencesRepository.mcpCustomHost.collect { host ->
+                    customHost = host
+                    _endpointUrl.value = if (host.isNotBlank()) "http://$host:$port/mcp" else "http://127.0.0.1:$port/mcp"
+                }
+            }
         }
 
         serverThread = acceptThread(ss, "mcp-http", McpOrigin.DEVICE)
@@ -566,6 +583,7 @@ class McpServer @Inject constructor(
         if (runBlocking { preferencesRepository.mcpLanBindEnabled.first() }) {
             startLanBinderLocked()
         }
+        registerNetworkWatcherLocked()
     }
 
     /**
@@ -629,18 +647,32 @@ class McpServer @Inject constructor(
     private fun startLanBinderLocked() {
         if (lanServerThread?.isAlive == true) return
         val boundPort = port
+        val customHostVal = customHost.trim()
         val lanSs = bindLan(boundPort)
-        if (lanSs == null) {
-            // No suitable interface up right now (e.g. mobile-only). The
-            // HavenApp connectivity observer re-invokes this on the next
-            // network change, so this is a soft skip, not an error.
-            Log.i(TAG, "MCP LAN bind requested but no Wi-Fi/LAN address is up; will retry on network change")
-            return
+        if (lanSs != null) {
+            lanServerSocket = lanSs
+            val hostDisplay = if (customHostVal.isNotBlank()) customHostVal else lanSs.inetAddress.hostAddress
+            _lanEndpointUrl.value = "http://$hostDisplay:$boundPort/mcp"
+            Log.i(TAG, "MCP also listening on LAN ${_lanEndpointUrl.value}")
+            lanServerThread = acceptThread(lanSs, "mcp-http-lan", McpOrigin.LAN)
+        } else {
+            // Check Tailscale / VPN interfaces if standard Wi-Fi LAN is down or in roaming
+            val tailscaleAddr = pickTailscaleAddress()
+            if (tailscaleAddr != null) {
+                val tsSs = try {
+                    ServerSocket(boundPort, 10, tailscaleAddr).apply { reuseAddress = true }
+                } catch (_: Exception) { null }
+                if (tsSs != null) {
+                    lanServerSocket = tsSs
+                    val hostDisplay = if (customHostVal.isNotBlank()) customHostVal else tailscaleAddr.hostAddress
+                    _lanEndpointUrl.value = "http://$hostDisplay:$boundPort/mcp"
+                    Log.i(TAG, "MCP listening on Tailscale interface ${_lanEndpointUrl.value}")
+                    lanServerThread = acceptThread(tsSs, "mcp-http-tailscale", McpOrigin.LAN)
+                }
+            } else {
+                Log.i(TAG, "MCP LAN/Tailscale bind requested but no suitable address is up; will retry on network change")
+            }
         }
-        lanServerSocket = lanSs
-        _lanEndpointUrl.value = "http://${lanSs.inetAddress.hostAddress}:$boundPort/mcp"
-        Log.i(TAG, "MCP also listening on LAN ${_lanEndpointUrl.value}")
-        lanServerThread = acceptThread(lanSs, "mcp-http-lan", McpOrigin.LAN)
     }
 
     /**
@@ -888,6 +920,60 @@ class McpServer @Inject constructor(
         vpnNetworkCallback = null
     }
 
+    private var networkChangeCallback: ConnectivityManager.NetworkCallback? = null
+
+    /** Must hold [lifecycleLock]. Idempotent. Watches for Wi-Fi / Cellular / VPN network transitions. */
+    private fun registerNetworkWatcherLocked() {
+        if (networkChangeCallback != null) return
+        val cm = connectivityManager ?: return
+        val cb = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                Log.d(TAG, "Network available ($network) — triggering MCP refresh")
+                onNetworkChanged()
+            }
+            override fun onLost(network: Network) {
+                Log.d(TAG, "Network lost ($network) — triggering MCP refresh")
+                onNetworkChanged()
+            }
+            override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
+                Log.d(TAG, "Network capabilities changed ($network) — triggering MCP refresh")
+                onNetworkChanged()
+            }
+        }
+        val req = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+        try {
+            cm.registerNetworkCallback(req, cb)
+            networkChangeCallback = cb
+        } catch (e: Exception) {
+            Log.w(TAG, "General network callback register failed: ${e.message}")
+        }
+    }
+
+    /** Must hold [lifecycleLock]. Idempotent. */
+    private fun unregisterNetworkWatcherLocked() {
+        val cb = networkChangeCallback ?: return
+        runCatching { connectivityManager?.unregisterNetworkCallback(cb) }
+        networkChangeCallback = null
+    }
+
+    fun onNetworkChanged() {
+        scope.launch {
+            synchronized(lifecycleLock) {
+                if (!isRunning) return@synchronized
+                Log.i(TAG, "Auto-refreshing MCP network bindings after connectivity change...")
+                if (runBlocking { preferencesRepository.mcpLanBindEnabled.first() }) {
+                    stopLanBinderLocked()
+                    startLanBinderLocked()
+                }
+                if (runBlocking { preferencesRepository.mcpWireguardEnabled.first() }) {
+                    refreshWireguardCollision()
+                }
+            }
+        }
+    }
+
     fun stop() = synchronized(lifecycleLock) {
         stopLocked()
     }
@@ -898,6 +984,7 @@ class McpServer @Inject constructor(
         mcpStatusHolder.setRunning(false)
         trustSyncJob?.cancel()
         trustSyncJob = null
+        unregisterNetworkWatcherLocked()
         stopWireguardBinderLocked()
         stopLanBinderLocked()
         try { serverSocket?.close() } catch (_: Exception) {}
@@ -936,6 +1023,14 @@ class McpServer @Inject constructor(
     // client). All share [dispatchHttpRequest]'s pairing/consent gate.
     private fun bindLoopback(): ServerSocket {
         val loopback = InetAddress.getByName("127.0.0.1")
+        val customPort = runBlocking { preferencesRepository.mcpCustomPort.first() }
+        if (customPort in 1024..65535) {
+            try {
+                return ServerSocket(customPort, 10, loopback).apply { reuseAddress = true }
+            } catch (_: IOException) {
+                // busy or disallowed, fall back to preferred range
+            }
+        }
         // Try preferred ports first so a client that cached an endpoint
         // across app restarts has a decent chance of finding us again.
         for (p in 8730..8739) {
@@ -984,6 +1079,24 @@ class McpServer @Inject constructor(
             ServerSocket(boundPort, 10, addr).apply { reuseAddress = true }
         } catch (e: IOException) {
             Log.w(TAG, "LAN bind on ${addr.hostAddress}:$boundPort failed: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * Look for active Tailscale or VPN IP addresses (100.64.0.0/10 or 10.x / tun / tailscale).
+     */
+    fun pickTailscaleAddress(): InetAddress? {
+        return try {
+            java.net.NetworkInterface.getNetworkInterfaces().asSequence()
+                .filter { it.isUp && !it.isLoopback }
+                .flatMap { it.inetAddresses.asSequence() }
+                .firstOrNull { a ->
+                    a is java.net.Inet4Address && !a.isLoopbackAddress &&
+                        (a.hostAddress.startsWith("100.") || a.hostAddress.startsWith("10."))
+                }
+        } catch (e: Exception) {
+            Log.w(TAG, "pickTailscaleAddress failed: ${e.message}")
             null
         }
     }
@@ -1337,7 +1450,7 @@ class McpServer @Inject constructor(
         // traffic also arrives on 127.0.0.1 but its far end is a remote
         // host — never trusted (#mcp-backbone Stage 2). LAN / WireGuard
         // always run the full gate. (#214)
-        val trusted = origin == McpOrigin.DEVICE && trustLoopbackEnabled
+        val trusted = autoApproveEnabled || (origin == McpOrigin.DEVICE && trustLoopbackEnabled)
         // Authentication gate (#mcp-backbone Stage 3): every method except
         // the pair-or-fail path itself requires a credential — the bearer
         // pairing token ([authClient], verified upstream) or a session id

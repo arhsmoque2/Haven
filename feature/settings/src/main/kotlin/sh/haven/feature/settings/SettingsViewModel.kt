@@ -497,6 +497,28 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { preferencesRepository.setAgentHyperlinkRoutingEnabled(enabled) }
     }
 
+    // --- MCP Autonomous Mode & Custom Endpoints ---
+    val mcpAutoApproveEnabled: StateFlow<Boolean> = preferencesRepository.mcpAutoApproveEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun setMcpAutoApproveEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setMcpAutoApproveEnabled(enabled) }
+    }
+
+    val mcpCustomPort: StateFlow<Int> = preferencesRepository.mcpCustomPort
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 8730)
+
+    fun setMcpCustomPort(port: Int) {
+        viewModelScope.launch { preferencesRepository.setMcpCustomPort(port) }
+    }
+
+    val mcpCustomHost: StateFlow<String> = preferencesRepository.mcpCustomHost
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    fun setMcpCustomHost(host: String) {
+        viewModelScope.launch { preferencesRepository.setMcpCustomHost(host) }
+    }
+
     /** #418 debug: RDP RemoteFX-Progressive upgrade-tile decoding. */
     val rdpProgressiveUpgrade: StateFlow<Boolean> = preferencesRepository.rdpProgressiveUpgrade
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
