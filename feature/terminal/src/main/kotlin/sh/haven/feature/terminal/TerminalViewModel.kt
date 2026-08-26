@@ -602,6 +602,23 @@ class TerminalViewModel @Inject constructor(
         preferencesRepository.terminalBackgroundOpacity
             .stateIn(viewModelScope, SharingStarted.Eagerly, 1f)
 
+    // --- ARH Agent & Automation ---
+    val agentMacroBarEnabled: StateFlow<Boolean> =
+        preferencesRepository.agentMacroBarEnabled
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val agentMacros: StateFlow<List<sh.haven.core.data.preferences.AgentMacro>> =
+        preferencesRepository.agentMacros
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), sh.haven.core.data.preferences.AgentMacro.DEFAULT_MACROS)
+
+    val agentCodeExtractorEnabled: StateFlow<Boolean> =
+        preferencesRepository.agentCodeExtractorEnabled
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val agentHyperlinkRoutingEnabled: StateFlow<Boolean> =
+        preferencesRepository.agentHyperlinkRoutingEnabled
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     /**
      * Scrollback ring size for newly created emulators (#151). Read at
      * construction by [TerminalEmulatorFactory.create]; existing tabs keep

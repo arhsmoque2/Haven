@@ -1,6 +1,10 @@
 package sh.haven.feature.terminal
 
 import sh.haven.core.toolbar.KeyboardToolbar
+import sh.haven.feature.terminal.arh.AgentMacroBar
+import sh.haven.feature.terminal.arh.CodeBlockParser
+import sh.haven.feature.terminal.arh.CodeExtractionSheet
+import sh.haven.feature.terminal.arh.ExtractedCodeBlock
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -346,6 +350,13 @@ fun TerminalScreen(
     var vncDialogInfo by remember { mutableStateOf<VncInfo?>(null) }
     var localVncLoading by remember { mutableStateOf(false) }
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+
+    // --- ARH Agent & Automation State ---
+    val agentMacroBarEnabled by viewModel.agentMacroBarEnabled.collectAsState()
+    val agentMacros by viewModel.agentMacros.collectAsState()
+    val agentCodeExtractorEnabled by viewModel.agentCodeExtractorEnabled.collectAsState()
+    var showCodeExtractionSheet by remember { mutableStateOf(false) }
+    var extractedBlocks by remember { mutableStateOf<List<ExtractedCodeBlock>>(emptyList()) }
 
     val context = LocalContext.current
 
@@ -1788,6 +1799,22 @@ fun TerminalScreen(
                         }
                     }
 
+                    // --- ARH Agent Fast-Approval & Macro Bar ---
+                    if (agentMacroBarEnabled && activeTab != null) {
+                        AgentMacroBar(
+                            macros = agentMacros,
+                            onSendPayload = { payload ->
+                                activeTab.sendInput(payload.toByteArray(Charsets.UTF_8))
+                            },
+                            onOpenCodeExtractor = {
+                                val text = activeTab.emulator?.getSnapshotLineTexts()?.joinToString("\n") ?: ""
+                                extractedBlocks = CodeBlockParser.extract(text)
+                                showCodeExtractionSheet = true
+                            },
+                            onOpenSettings = onOpenToolbarSettings
+                        )
+                    }
+
                     // Keep the extra key rows in fullscreen — Ctrl/Esc/arrows are
                     // needed while typing. Fullscreen still hides the system + tab bars.
                     KeyboardToolbar(
@@ -1933,6 +1960,13 @@ fun TerminalScreen(
                 }
             }
         }
+    }
+
+    if (showCodeExtractionSheet) {
+        CodeExtractionSheet(
+            blocks = extractedBlocks,
+            onDismiss = { showCodeExtractionSheet = false }
+        )
     }
 }
 

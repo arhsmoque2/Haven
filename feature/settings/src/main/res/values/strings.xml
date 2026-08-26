@@ -532,4 +532,21 @@
 Every password, passphrase and secret already stored in Haven will need to be entered again. They are already unreadable — the key that protected them is gone — so this recovers the app rather than losing anything further.</string>
     <string name="settings_credential_reset_confirm">Repair</string>
     <string name="settings_credential_reset_cancel">Cancel</string>
+
+    <!-- ARH Agent & Automation (#ARH-PORT) -->
+    <string name="settings_agent_category_title">Agent &amp; Automation (ARH)</string>
+    <string name="settings_agent_macro_bar_title">Agent fast-approval &amp; macro rail</string>
+    <string name="settings_agent_macro_bar_subtitle">Show 1-tap consent ([Approve (y)], [Reject (n)]) and macro chips above keyboard</string>
+    <string name="settings_agent_code_extractor_title">1-Tap code &amp; diff extraction</string>
+    <string name="settings_agent_code_extractor_subtitle">Scan terminal scrollback for markdown code fences and git diffs</string>
+    <string name="settings_agent_hyperlink_routing_title">Smart URI &amp; file link routing</string>
+    <string name="settings_agent_hyperlink_routing_subtitle">Open file:/// and project links directly in external viewers</string>
+    <string name="settings_agent_manage_macros_title">Configure agent macros</string>
+    <string name="settings_agent_manage_macros_subtitle">Add, edit, reorder, or delete custom agent fast-action buttons</string>
+    <string name="settings_agent_macro_dialog_title">Agent Macros Manager</string>
+    <string name="settings_agent_add_macro">Add Macro</string>
+    <string name="settings_agent_edit_macro">Edit Macro</string>
+    <string name="settings_agent_macro_label">Button Label (e.g. Approve)</string>
+    <string name="settings_agent_macro_payload">Command / Sequence (e.g. y\\n)</string>
+    <string name="settings_agent_macro_destructive">Mark as destructive (Red tint)</string>
 </resources>

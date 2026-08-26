@@ -442,6 +442,61 @@ class SettingsViewModel @Inject constructor(
     val showCopyOutputButton: StateFlow<Boolean> = preferencesRepository.showCopyOutputButton
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    // --- ARH Agent & Automation Preferences ---
+    val agentMacroBarEnabled: StateFlow<Boolean> = preferencesRepository.agentMacroBarEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setAgentMacroBarEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setAgentMacroBarEnabled(enabled) }
+    }
+
+    val agentMacros: StateFlow<List<sh.haven.core.data.preferences.AgentMacro>> = preferencesRepository.agentMacros
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), sh.haven.core.data.preferences.AgentMacro.DEFAULT_MACROS)
+
+    fun saveAgentMacros(macros: List<sh.haven.core.data.preferences.AgentMacro>) {
+        viewModelScope.launch { preferencesRepository.setAgentMacros(macros) }
+    }
+
+    fun addAgentMacro(macro: sh.haven.core.data.preferences.AgentMacro) {
+        val current = agentMacros.value.toMutableList()
+        current.add(macro)
+        saveAgentMacros(current)
+    }
+
+    fun updateAgentMacro(index: Int, macro: sh.haven.core.data.preferences.AgentMacro) {
+        val current = agentMacros.value.toMutableList()
+        if (index in current.indices) {
+            current[index] = macro
+            saveAgentMacros(current)
+        }
+    }
+
+    fun deleteAgentMacro(index: Int) {
+        val current = agentMacros.value.toMutableList()
+        if (index in current.indices) {
+            current.removeAt(index)
+            saveAgentMacros(current)
+        }
+    }
+
+    fun resetAgentMacros() {
+        viewModelScope.launch { preferencesRepository.resetAgentMacros() }
+    }
+
+    val agentCodeExtractorEnabled: StateFlow<Boolean> = preferencesRepository.agentCodeExtractorEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setAgentCodeExtractorEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setAgentCodeExtractorEnabled(enabled) }
+    }
+
+    val agentHyperlinkRoutingEnabled: StateFlow<Boolean> = preferencesRepository.agentHyperlinkRoutingEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setAgentHyperlinkRoutingEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setAgentHyperlinkRoutingEnabled(enabled) }
+    }
+
     /** #418 debug: RDP RemoteFX-Progressive upgrade-tile decoding. */
     val rdpProgressiveUpgrade: StateFlow<Boolean> = preferencesRepository.rdpProgressiveUpgrade
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)

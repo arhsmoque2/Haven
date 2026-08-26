@@ -27,11 +27,13 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Laptop
 import androidx.compose.material.icons.filled.Mouse
@@ -441,6 +443,7 @@ fun SettingsScreen(
         androidx.compose.runtime.mutableStateListOf(
             false, false, false, false, false, false, false, false, false, false,
             false, // [10] AI agent (MCP)
+            false, // [11] Agent & Automation (ARH)
         )
     }
     Column(modifier = Modifier.fillMaxSize()) {
@@ -1321,6 +1324,55 @@ fun SettingsScreen(
         }
 
         }
+
+        // ── ARH Agent & Automation ──
+        val agentMacroBarEnabled by viewModel.agentMacroBarEnabled.collectAsState()
+        val agentMacros by viewModel.agentMacros.collectAsState()
+        val agentCodeExtractorEnabled by viewModel.agentCodeExtractorEnabled.collectAsState()
+        val agentHyperlinkRoutingEnabled by viewModel.agentHyperlinkRoutingEnabled.collectAsState()
+        var showAgentMacroManagerDialog by remember { mutableStateOf(false) }
+
+        CollapsibleSettingsSection(stringResource(R.string.settings_agent_category_title), settingsExpanded[11], { settingsExpanded[11] = !settingsExpanded[11] }) {
+            SettingsToggleItem(
+                icon = Icons.Filled.Bolt,
+                title = stringResource(R.string.settings_agent_macro_bar_title),
+                subtitle = stringResource(R.string.settings_agent_macro_bar_subtitle),
+                checked = agentMacroBarEnabled,
+                onCheckedChange = viewModel::setAgentMacroBarEnabled,
+            )
+            if (agentMacroBarEnabled) {
+                SettingsItem(
+                    icon = Icons.Filled.Tune,
+                    title = stringResource(R.string.settings_agent_manage_macros_title),
+                    subtitle = stringResource(R.string.settings_agent_manage_macros_subtitle),
+                    onClick = { showAgentMacroManagerDialog = true },
+                )
+            }
+            SettingsToggleItem(
+                icon = Icons.Filled.DataObject,
+                title = stringResource(R.string.settings_agent_code_extractor_title),
+                subtitle = stringResource(R.string.settings_agent_code_extractor_subtitle),
+                checked = agentCodeExtractorEnabled,
+                onCheckedChange = viewModel::setAgentCodeExtractorEnabled,
+            )
+            SettingsToggleItem(
+                icon = Icons.Filled.Link,
+                title = stringResource(R.string.settings_agent_hyperlink_routing_title),
+                subtitle = stringResource(R.string.settings_agent_hyperlink_routing_subtitle),
+                checked = agentHyperlinkRoutingEnabled,
+                onCheckedChange = viewModel::setAgentHyperlinkRoutingEnabled,
+            )
+        }
+
+        if (showAgentMacroManagerDialog) {
+            AgentMacroManagerDialog(
+                macros = agentMacros,
+                onDismiss = { showAgentMacroManagerDialog = false },
+                onSave = { updated -> viewModel.saveAgentMacros(updated) },
+                onResetDefaults = { viewModel.resetAgentMacros() }
+            )
+        }
+
         CollapsibleSettingsSection(stringResource(R.string.settings_section_backup), settingsExpanded[8], { settingsExpanded[8] = !settingsExpanded[8] }) {
         SettingsItem(
             icon = Icons.Filled.CloudUpload,

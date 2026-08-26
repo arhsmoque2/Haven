@@ -217,6 +217,59 @@ class UserPreferencesRepository @Inject constructor(
     // attach-to-first-live behaviour.
     private val mcpWireguardTunnelConfigIdKey = stringPreferencesKey("mcp_wireguard_tunnel_config_id")
 
+    // --- ARH Agent & Automation Preferences ---
+    private val agentMacroBarEnabledKey = booleanPreferencesKey("agent_macro_bar_enabled")
+    private val agentCustomMacrosKey = stringPreferencesKey("agent_custom_macros")
+    private val agentCodeExtractorEnabledKey = booleanPreferencesKey("agent_code_extractor_enabled")
+    private val agentHyperlinkRoutingKey = booleanPreferencesKey("agent_hyperlink_routing_enabled")
+
+    val agentMacroBarEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[agentMacroBarEnabledKey] ?: true
+    }
+
+    suspend fun setAgentMacroBarEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[agentMacroBarEnabledKey] = enabled
+        }
+    }
+
+    val agentMacros: Flow<List<AgentMacro>> = dataStore.data.map { prefs ->
+        val raw = prefs[agentCustomMacrosKey] ?: ""
+        AgentMacro.listFromJson(raw)
+    }
+
+    suspend fun setAgentMacros(macros: List<AgentMacro>) {
+        dataStore.edit { prefs ->
+            prefs[agentCustomMacrosKey] = AgentMacro.listToJson(macros)
+        }
+    }
+
+    suspend fun resetAgentMacros() {
+        dataStore.edit { prefs ->
+            prefs[agentCustomMacrosKey] = AgentMacro.listToJson(AgentMacro.DEFAULT_MACROS)
+        }
+    }
+
+    val agentCodeExtractorEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[agentCodeExtractorEnabledKey] ?: true
+    }
+
+    suspend fun setAgentCodeExtractorEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[agentCodeExtractorEnabledKey] = enabled
+        }
+    }
+
+    val agentHyperlinkRoutingEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[agentHyperlinkRoutingKey] ?: true
+    }
+
+    suspend fun setAgentHyperlinkRoutingEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[agentHyperlinkRoutingKey] = enabled
+        }
+    }
+
     val biometricEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[biometricEnabledKey] ?: false
     }
