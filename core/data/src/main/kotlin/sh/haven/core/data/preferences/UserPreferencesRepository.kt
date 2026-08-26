@@ -2231,6 +2231,7 @@ class UserPreferencesRepository @Inject constructor(
     ) {
         NONE("None", null, null, supportsScrollback = false),
         TMUX("tmux", "https://github.com/tmux/tmux/wiki", { name -> "tmux new-session -A -s $name \\; set -gq allow-passthrough on \\; set -gq mouse on" }),
+        PSMUX("psmux", "https://github.com/arhsmoque2/psmux", { name -> "psmux attach -t $name --create" }),
         ZELLIJ("zellij", "https://zellij.dev", { name -> "zellij attach $name --create" }),
         SCREEN("screen", "https://www.gnu.org/software/screen/", { name -> "screen -dRR $name" }, supportsScrollback = false),
         BYOBU("byobu", "https://www.byobu.org", { name -> "byobu new-session -A -s $name \\; set -gq mouse on" });

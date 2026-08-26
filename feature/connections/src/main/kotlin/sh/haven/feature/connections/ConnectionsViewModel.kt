@@ -5804,6 +5804,7 @@ class ConnectionsViewModel @Inject constructor(
         when (this) {
             UserPreferencesRepository.SessionManager.NONE -> SessionManager.NONE
             UserPreferencesRepository.SessionManager.TMUX -> SessionManager.TMUX
+            UserPreferencesRepository.SessionManager.PSMUX -> SessionManager.PSMUX
             UserPreferencesRepository.SessionManager.ZELLIJ -> SessionManager.ZELLIJ
             UserPreferencesRepository.SessionManager.SCREEN -> SessionManager.SCREEN
             UserPreferencesRepository.SessionManager.BYOBU -> SessionManager.BYOBU
