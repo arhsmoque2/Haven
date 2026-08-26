@@ -270,6 +270,25 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    private val agentSavedPromptsKey = stringPreferencesKey("agent_saved_prompts")
+
+    val agentSavedPrompts: Flow<List<SavedPrompt>> = dataStore.data.map { prefs ->
+        val raw = prefs[agentSavedPromptsKey] ?: ""
+        SavedPrompt.listFromJson(raw)
+    }
+
+    suspend fun setAgentSavedPrompts(prompts: List<SavedPrompt>) {
+        dataStore.edit { prefs ->
+            prefs[agentSavedPromptsKey] = SavedPrompt.listToJson(prompts)
+        }
+    }
+
+    suspend fun resetAgentSavedPrompts() {
+        dataStore.edit { prefs ->
+            prefs[agentSavedPromptsKey] = SavedPrompt.listToJson(SavedPrompt.DEFAULT_PROMPTS)
+        }
+    }
+
     val biometricEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[biometricEnabledKey] ?: false
     }

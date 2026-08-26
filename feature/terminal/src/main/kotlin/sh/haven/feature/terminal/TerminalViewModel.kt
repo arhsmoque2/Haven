@@ -619,6 +619,28 @@ class TerminalViewModel @Inject constructor(
         preferencesRepository.agentHyperlinkRoutingEnabled
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val agentSavedPrompts: StateFlow<List<sh.haven.core.data.preferences.SavedPrompt>> =
+        preferencesRepository.agentSavedPrompts
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), sh.haven.core.data.preferences.SavedPrompt.DEFAULT_PROMPTS)
+
+    fun saveAgentPrompts(prompts: List<sh.haven.core.data.preferences.SavedPrompt>) {
+        viewModelScope.launch { preferencesRepository.setAgentSavedPrompts(prompts) }
+    }
+
+    fun addAgentPrompt(prompt: sh.haven.core.data.preferences.SavedPrompt) {
+        val current = agentSavedPrompts.value.toMutableList()
+        current.add(prompt)
+        saveAgentPrompts(current)
+    }
+
+    fun deleteAgentPrompt(index: Int) {
+        val current = agentSavedPrompts.value.toMutableList()
+        if (index in current.indices) {
+            current.removeAt(index)
+            saveAgentPrompts(current)
+        }
+    }
+
     /**
      * Scrollback ring size for newly created emulators (#151). Read at
      * construction by [TerminalEmulatorFactory.create]; existing tabs keep

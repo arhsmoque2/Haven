@@ -5,6 +5,9 @@ import sh.haven.feature.terminal.arh.AgentMacroBar
 import sh.haven.feature.terminal.arh.CodeBlockParser
 import sh.haven.feature.terminal.arh.CodeExtractionSheet
 import sh.haven.feature.terminal.arh.ExtractedCodeBlock
+import sh.haven.feature.terminal.arh.PromptBookSheet
+import sh.haven.feature.terminal.arh.TerminalMarkdownExporter
+import sh.haven.core.data.preferences.SavedPrompt
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -355,7 +358,9 @@ fun TerminalScreen(
     val agentMacroBarEnabled by viewModel.agentMacroBarEnabled.collectAsState()
     val agentMacros by viewModel.agentMacros.collectAsState()
     val agentCodeExtractorEnabled by viewModel.agentCodeExtractorEnabled.collectAsState()
+    val agentSavedPrompts by viewModel.agentSavedPrompts.collectAsState()
     var showCodeExtractionSheet by remember { mutableStateOf(false) }
+    var showPromptBookSheet by remember { mutableStateOf(false) }
     var extractedBlocks by remember { mutableStateOf<List<ExtractedCodeBlock>>(emptyList()) }
 
     val context = LocalContext.current
@@ -1811,6 +1816,18 @@ fun TerminalScreen(
                                 extractedBlocks = CodeBlockParser.extract(text)
                                 showCodeExtractionSheet = true
                             },
+                            onOpenPromptBook = {
+                                showPromptBookSheet = true
+                            },
+                            onExportTranscriptMarkdown = {
+                                val lines = activeTab.emulator?.getSnapshotLineTexts() ?: emptyList()
+                                val md = TerminalMarkdownExporter.generateMarkdown(
+                                    sessionTitle = activeTab.title,
+                                    host = (activeTab as? SshTerminalTab)?.profile?.host,
+                                    lines = lines
+                                )
+                                TerminalMarkdownExporter.shareMarkdown(context, activeTab.title, md)
+                            },
                             onOpenSettings = onOpenToolbarSettings
                         )
                     }
@@ -1966,6 +1983,27 @@ fun TerminalScreen(
         CodeExtractionSheet(
             blocks = extractedBlocks,
             onDismiss = { showCodeExtractionSheet = false }
+        )
+    }
+
+    if (showPromptBookSheet) {
+        PromptBookSheet(
+            prompts = agentSavedPrompts,
+            onInjectToInput = { promptContent ->
+                // Inject prompt into floating text input draft and display dialog so user can edit before Enter
+                if (activeTab != null) {
+                    textInputDrafts = HashMap(textInputDrafts).apply {
+                        put(activeTab.sessionId, promptContent)
+                    }
+                    textInputDialogVisible = true
+                }
+            },
+            onSendDirectly = { promptContent ->
+                activeTab?.sendInput("$promptContent\n".toByteArray(Charsets.UTF_8))
+            },
+            onAddPrompt = { newPrompt -> viewModel.addAgentPrompt(newPrompt) },
+            onDeletePrompt = { index -> viewModel.deleteAgentPrompt(index) },
+            onDismiss = { showPromptBookSheet = false }
         )
     }
 }

@@ -17,6 +17,8 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -36,14 +38,16 @@ import androidx.compose.ui.unit.sp
 import sh.haven.core.data.preferences.AgentMacro
 
 /**
- * Quick-action rail rendering 1-tap agent approvals and custom macro buttons
- * directly above Haven's virtual keyboard toolbar.
+ * Quick-action rail rendering 1-tap agent approvals, code extraction, prompt templates,
+ * and custom macro buttons directly above Haven's virtual keyboard toolbar.
  */
 @Composable
 fun AgentMacroBar(
     macros: List<AgentMacro>,
     onSendPayload: (String) -> Unit,
     onOpenCodeExtractor: () -> Unit,
+    onOpenPromptBook: () -> Unit,
+    onExportTranscriptMarkdown: () -> Unit,
     onOpenSettings: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -71,6 +75,32 @@ fun AgentMacroBar(
                     imageVector = Icons.Default.DataObject,
                     contentDescription = "Extract Code Blocks",
                     tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            // Quick 1-Tap Prompt Book Trigger
+            IconButton(
+                onClick = onOpenPromptBook,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MenuBook,
+                    contentDescription = "Prompt Book",
+                    tint = Color(0xFF38BDF8),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            // Quick 1-Tap Markdown Transcript Download/Share Trigger
+            IconButton(
+                onClick = onExportTranscriptMarkdown,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Download,
+                    contentDescription = "Export Transcript Markdown",
+                    tint = Color(0xFFFBBF24),
                     modifier = Modifier.size(18.dp)
                 )
             }
