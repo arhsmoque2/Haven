@@ -11,6 +11,7 @@ args are surfaced as hints.
 Rerun after editing any strings.xml — CI (lint job) regenerates and fails if
 ``docs/i18n/strings.json`` drifts (``git diff --exit-code``).
 """
+
 import json
 import re
 import sys
@@ -25,10 +26,8 @@ LOCALES = ["ar", "bn", "de", "es", "fr", "hi", "ja", "ko", "pt", "ru", "zh"]
 STRING_RE = re.compile(r'<string\s+name="([^"]+)"[^>]*>(.*?)</string>', re.DOTALL)
 # Comments and strings interleaved, in document order, so we can attach the
 # most recent comment (a section header) as context to the strings that follow.
-TOKEN_RE = re.compile(
-    r'<!--(.*?)-->|<string\s+name="([^"]+)"[^>]*>(.*?)</string>', re.DOTALL
-)
-ARG_RE = re.compile(r'%(?:\d+\$)?[sd]')
+TOKEN_RE = re.compile(r'<!--(.*?)-->|<string\s+name="([^"]+)"[^>]*>(.*?)</string>', re.DOTALL)
+ARG_RE = re.compile(r"%(?:\d+\$)?[sd]")
 
 
 def parse_source(text):
@@ -40,12 +39,14 @@ def parse_source(text):
             last_comment = " ".join(m.group(1).split())
         else:
             name, val = m.group(2), m.group(3)
-            out.append({
-                "name": name,
-                "en": val,
-                "comment": last_comment,
-                "args": sorted(set(ARG_RE.findall(val))),
-            })
+            out.append(
+                {
+                    "name": name,
+                    "en": val,
+                    "comment": last_comment,
+                    "args": sorted(set(ARG_RE.findall(val))),
+                }
+            )
     return out
 
 
@@ -53,8 +54,7 @@ def parse_translations(path):
     """{name: value} from a locale strings.xml (empty if the file is absent)."""
     if not path.exists():
         return {}
-    return {m.group(1): m.group(2)
-            for m in STRING_RE.finditer(path.read_text(encoding="utf-8"))}
+    return {m.group(1): m.group(2) for m in STRING_RE.finditer(path.read_text(encoding="utf-8"))}
 
 
 def discover_modules():
@@ -82,8 +82,7 @@ def main():
     for module, src in discover_modules():
         strings = parse_source(src.read_text(encoding="utf-8"))
         translations = {
-            loc: parse_translations(
-                src.parent.parent / f"values-{loc}" / "strings.xml")
+            loc: parse_translations(src.parent.parent / f"values-{loc}" / "strings.xml")
             for loc in LOCALES
         }
         for s in strings:
@@ -94,22 +93,24 @@ def main():
                     t[loc] = v
             s["t"] = t
         total += len(strings)
-        modules.append({
-            "module": module,
-            "path": f"{module}/src/main/res/values/strings.xml",
-            "strings": strings,
-        })
+        modules.append(
+            {
+                "module": module,
+                "path": f"{module}/src/main/res/values/strings.xml",
+                "strings": strings,
+            }
+        )
 
     # No HEAD-sha / timestamp stamp: the output must depend only on the
     # strings.xml sources so CI can regenerate and `git diff --exit-code` it
     # (a self-referential HEAD sha would differ pre- vs post-commit).
     data = {"locales": LOCALES, "modules": modules}
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(
-        json.dumps(data, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
+    OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    print(
+        f"wrote {OUT.relative_to(REPO)}: "
+        f"{len(modules)} modules, {len(LOCALES)} locales, {total} strings"
     )
-    print(f"wrote {OUT.relative_to(REPO)}: "
-          f"{len(modules)} modules, {len(LOCALES)} locales, {total} strings")
     return 0
 
 

@@ -30,6 +30,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
     """Redirect handler that strips Authorization headers when redirected off api.github.com (e.g. Azure Blob)."""
+
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         new_req = super().redirect_request(req, fp, code, msg, headers, newurl)
         if new_req is not None:
@@ -41,15 +42,22 @@ class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
 
 
 def get_token() -> str:
-    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_PAT")
+    token = (
+        os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_PAT")
+    )
     if not token:
         try:
-            res = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True, check=True)
+            res = subprocess.run(
+                ["gh", "auth", "token"], capture_output=True, text=True, check=True
+            )
             token = res.stdout.strip()
         except Exception:
             pass
     if not token:
-        print("[ERROR] GitHub token not found. Set GITHUB_TOKEN, GH_TOKEN, GITHUB_PAT, or authenticate with `gh auth login`.", file=sys.stderr)
+        print(
+            "[ERROR] GitHub token not found. Set GITHUB_TOKEN, GH_TOKEN, GITHUB_PAT, or authenticate with `gh auth login`.",
+            file=sys.stderr,
+        )
         sys.exit(1)
     return token
 
@@ -60,10 +68,15 @@ def get_repo_slug(explicit_repo: str | None = None) -> str:
     try:
         remote_url = subprocess.run(
             ["git", "-C", str(REPO_ROOT), "config", "--get", "remote.origin.url"],
-            capture_output=True, text=True, check=True
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout.strip()
     except subprocess.CalledProcessError:
-        print("[ERROR] Could not resolve git remote.origin.url. Run inside a git repository or specify --repo.", file=sys.stderr)
+        print(
+            "[ERROR] Could not resolve git remote.origin.url. Run inside a git repository or specify --repo.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     match = re.search(r"github\.com[:/](?P<owner>[^/]+)/(?P<repo>[^/.]+)(?:\.git)?", remote_url)
@@ -73,7 +86,9 @@ def get_repo_slug(explicit_repo: str | None = None) -> str:
     return f"{match.group('owner')}/{match.group('repo')}"
 
 
-def github_api_request(url: str, token: str, method: str = "GET", data: dict = None) -> dict | bytes:
+def github_api_request(
+    url: str, token: str, method: str = "GET", data: dict = None
+) -> dict | bytes:
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
@@ -101,13 +116,17 @@ def get_current_ref() -> str:
     try:
         branch = subprocess.run(
             ["git", "-C", str(REPO_ROOT), "rev-parse", "--abbrev-ref", "HEAD"],
-            capture_output=True, text=True, check=True
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout.strip()
         if branch and branch != "HEAD":
             return branch
         return subprocess.run(
             ["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD"],
-            capture_output=True, text=True, check=True
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout.strip()
     except Exception:
         return "main"
@@ -121,7 +140,9 @@ def trigger_workflow(repo: str, token: str, workflow_file: str, ref: str) -> Non
     print("[+] Workflow dispatch accepted by GitHub.")
 
 
-def find_workflow_run(repo: str, token: str, workflow_file: str, triggered_after_ts: float) -> dict | None:
+def find_workflow_run(
+    repo: str, token: str, workflow_file: str, triggered_after_ts: float
+) -> dict | None:
     url = f"https://api.github.com/repos/{repo}/actions/workflows/{workflow_file}/runs?per_page=5"
     data = github_api_request(url, token)
     for run in data.get("workflow_runs", []):
@@ -150,11 +171,13 @@ def fetch_failed_logs(repo: str, token: str, run_id: int) -> None:
             for step in job.get("steps", []):
                 if step.get("conclusion") == "failure":
                     print(f"  -> Failed Step: {step.get('name')} (Number: {step.get('number')})")
-    
+
     print(f"\nTip: View complete run logs at: https://github.com/{repo}/actions/runs/{run_id}")
 
 
-def download_apk_artifacts(repo: str, token: str, run_id: int, output_dir: Path, target_type: str = "all") -> list[Path]:
+def download_apk_artifacts(
+    repo: str, token: str, run_id: int, output_dir: Path, target_type: str = "all"
+) -> list[Path]:
     url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/artifacts"
     data = github_api_request(url, token)
     artifacts = data.get("artifacts", [])
@@ -166,11 +189,7 @@ def download_apk_artifacts(repo: str, token: str, run_id: int, output_dir: Path,
     output_dir.mkdir(parents=True, exist_ok=True)
     downloaded_files = []
 
-    type_filters = {
-        "debug": ["debug"],
-        "release": ["release"],
-        "all": ["debug", "release", "apk"]
-    }
+    type_filters = {"debug": ["debug"], "release": ["release"], "all": ["debug", "release", "apk"]}
     keywords = type_filters.get(target_type, ["apk"])
 
     for art in artifacts:
@@ -213,16 +232,55 @@ def run_doctor_verification(apk_path: Path, is_release: bool = False) -> bool:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Trigger, monitor, and download remote Android APK builds from GitHub Actions.")
-    parser.add_argument("--workflow", default="ci.yml", help="Workflow YAML filename (default: ci.yml)")
-    parser.add_argument("--repo", default=None, help="Target GitHub repo slug (owner/repo). Autodetected from git remote if omitted.")
-    parser.add_argument("--ref", default=None, help="Git branch/tag/commit SHA to build (default: current HEAD/branch)")
-    parser.add_argument("--type", choices=["debug", "release", "all"], default="all", help="Artifact variant to download (default: all)")
-    parser.add_argument("--output-dir", default="./build-outputs", help="Directory to save downloaded APKs (default: ./build-outputs)")
-    parser.add_argument("--timeout", type=int, default=1200, help="Polling timeout in seconds (default: 1200s / 20m)")
-    parser.add_argument("--from-run-id", type=int, default=None, help="Skip dispatch and download artifacts directly from an existing run ID")
-    parser.add_argument("--from-latest", action="store_true", help="Skip dispatch and download artifacts from the latest successful CI run")
-    parser.add_argument("--verify", action="store_true", help="Run local APK signing doctor verification on downloaded artifacts")
+    parser = argparse.ArgumentParser(
+        description="Trigger, monitor, and download remote Android APK builds from GitHub Actions."
+    )
+    parser.add_argument(
+        "--workflow", default="ci.yml", help="Workflow YAML filename (default: ci.yml)"
+    )
+    parser.add_argument(
+        "--repo",
+        default=None,
+        help="Target GitHub repo slug (owner/repo). Autodetected from git remote if omitted.",
+    )
+    parser.add_argument(
+        "--ref",
+        default=None,
+        help="Git branch/tag/commit SHA to build (default: current HEAD/branch)",
+    )
+    parser.add_argument(
+        "--type",
+        choices=["debug", "release", "all"],
+        default="all",
+        help="Artifact variant to download (default: all)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default="./build-outputs",
+        help="Directory to save downloaded APKs (default: ./build-outputs)",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=1200,
+        help="Polling timeout in seconds (default: 1200s / 20m)",
+    )
+    parser.add_argument(
+        "--from-run-id",
+        type=int,
+        default=None,
+        help="Skip dispatch and download artifacts directly from an existing run ID",
+    )
+    parser.add_argument(
+        "--from-latest",
+        action="store_true",
+        help="Skip dispatch and download artifacts from the latest successful CI run",
+    )
+    parser.add_argument(
+        "--verify",
+        action="store_true",
+        help="Run local APK signing doctor verification on downloaded artifacts",
+    )
     args = parser.parse_args()
 
     token = get_token()
@@ -234,7 +292,10 @@ def main():
         if args.from_latest:
             latest_run = get_latest_successful_run(repo, token, args.workflow)
             if not latest_run:
-                print(f"[ERROR] No successful runs found for workflow '{args.workflow}' on '{repo}'.", file=sys.stderr)
+                print(
+                    f"[ERROR] No successful runs found for workflow '{args.workflow}' on '{repo}'.",
+                    file=sys.stderr,
+                )
                 sys.exit(1)
             run_id = latest_run["id"]
             print(f"[+] Found latest successful run: #{run_id} ({latest_run['html_url']})")
@@ -286,7 +347,11 @@ def main():
         status = run_data.get("status")
         conclusion = run_data.get("conclusion")
 
-        print(f"\r[*] [{elapsed}s] Run #{run_id} status: {status} (conclusion: {conclusion or 'in-progress'})...", end="", flush=True)
+        print(
+            f"\r[*] [{elapsed}s] Run #{run_id} status: {status} (conclusion: {conclusion or 'in-progress'})...",
+            end="",
+            flush=True,
+        )
 
         if status == "completed":
             print()

@@ -3,6 +3,7 @@
 ARH-Terminal APK Signing & Integrity Quality Gate.
 Validates 4-byte zipalign, apksigner v1/v2/v3 signing schemes, and certificate provenance.
 """
+
 import os
 import shutil
 import subprocess
@@ -13,6 +14,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 
 def find_tool(tool_name: str) -> str:
     # 1. Direct PATH lookup
@@ -51,14 +53,21 @@ def find_tool(tool_name: str) -> str:
 
     return tool_name
 
+
 def run_cmd(cmd: list[str]) -> tuple[int, str]:
     try:
-        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        proc = subprocess.run(cmd, capture_output=True, text=True)
         return proc.returncode, proc.stdout + proc.stderr
     except Exception as e:
         return 1, str(e)
 
-def verify_apk(apk_path: Path, is_release: bool = False, expected_sha256: str | None = None, max_size_mb: float = 8.0) -> bool:
+
+def verify_apk(
+    apk_path: Path,
+    is_release: bool = False,
+    expected_sha256: str | None = None,
+    max_size_mb: float = 8.0,
+) -> bool:
     if not apk_path.exists():
         print(f"❌ APK not found: {apk_path}")
         return False
@@ -68,19 +77,24 @@ def verify_apk(apk_path: Path, is_release: bool = False, expected_sha256: str | 
 
     # 1. Budget Size Gate
     if size_mb > max_size_mb:
-        print(f"  ❌ APK Size ({size_mb:.2f} MB) exceeds maximum allowed budget ({max_size_mb:.2f} MB)!")
+        print(
+            f"  ❌ APK Size ({size_mb:.2f} MB) exceeds maximum allowed budget ({max_size_mb:.2f} MB)!"
+        )
         return False
     else:
         print(f"  ✅ Size Budget: {size_mb:.2f} MB (within < {max_size_mb:.1f} MB ceiling)")
 
     # 2. Inspect Native ABIs inside ZIP
     import zipfile
+
     try:
         with zipfile.ZipFile(apk_path, "r") as z:
             so_files = [f for f in z.namelist() if f.startswith("lib/") and f.endswith(".so")]
             abis = set(f.split("/")[1] for f in so_files if len(f.split("/")) > 2)
             if abis:
-                print(f"  ✅ Native Architectures (ABIs): {', '.join(sorted(abis))} ({len(so_files)} .so libs)")
+                print(
+                    f"  ✅ Native Architectures (ABIs): {', '.join(sorted(abis))} ({len(so_files)} .so libs)"
+                )
             else:
                 print("  ℹ️ Pure DEX/Java APK (no native .so libraries bundled)")
     except Exception as e:
@@ -102,8 +116,16 @@ def verify_apk(apk_path: Path, is_release: bool = False, expected_sha256: str | 
         print(f"  ❌ apksigner verification failed with exit code {code}:\n{out}")
         return False
 
-    v1_ok = "Verified using v1 scheme (JAR signing): true" in out or "v1 scheme: true" in out or "v1 scheme (JAR signing): true" in out
-    v2_ok = "Verified using v2 scheme (APK Signature Scheme v2): true" in out or "v2 scheme: true" in out or "v2 scheme (APK Signature Scheme v2): true" in out
+    v1_ok = (
+        "Verified using v1 scheme (JAR signing): true" in out
+        or "v1 scheme: true" in out
+        or "v1 scheme (JAR signing): true" in out
+    )
+    v2_ok = (
+        "Verified using v2 scheme (APK Signature Scheme v2): true" in out
+        or "v2 scheme: true" in out
+        or "v2 scheme (APK Signature Scheme v2): true" in out
+    )
     v3_ok = "Verified using v3 scheme" in out
 
     print(f"  ✅ Signature schemes verified: v1={v1_ok}, v2={v2_ok}, v3={v3_ok}")
@@ -132,9 +154,12 @@ def verify_apk(apk_path: Path, is_release: bool = False, expected_sha256: str | 
     print(f"🎉 SUCCESS: {apk_path.name} passed all signing & integrity checks!\n")
     return True
 
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python ci_apk_signing_doctor.py <path-to-apk> [--release] [--expected-cert-sha256 <hash>]")
+        print(
+            "Usage: python ci_apk_signing_doctor.py <path-to-apk> [--release] [--expected-cert-sha256 <hash>]"
+        )
         sys.exit(1)
 
     apk_file = Path(sys.argv[1])
