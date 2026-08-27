@@ -38,23 +38,38 @@ def run_cmd(cmd: list[str], cwd: Path = ROOT) -> tuple[int, str]:
 def check_git_merge_compatibility() -> bool:
     print("\n[1/4] 🔀 Checking Git In-Memory Merge Compatibility against origin/main...")
     # Find merge base
-    rc, merge_base = run_cmd(["git", "merge-base", "origin/main", "HEAD"])
+    target_ref = "origin/main"
+    rc, merge_base = run_cmd(["git", "merge-base", target_ref, "HEAD"])
     if rc != 0:
         # Fallback to local main if origin/main is not fetched
-        rc, merge_base = run_cmd(["git", "merge-base", "main", "HEAD"])
+        target_ref = "main"
+        rc, merge_base = run_cmd(["git", "merge-base", target_ref, "HEAD"])
         if rc != 0:
             print(
                 "  ⚠️ [WARN] Could not resolve merge base against main/origin/main (offline or shallow clone). Skipping."
             )
             return True
 
-    base_sha = merge_base.strip()
-    # Execute git merge-tree in-memory simulation
-    rc, output = run_cmd(["git", "merge-tree", base_sha, "origin/main", "HEAD"])
-    if rc != 0 and "conflict" in output.lower():
-        print(f"  ❌ [FAIL] Git merge conflicts detected with origin/main:\n{output[:500]}")
+    # Try modern git merge-tree --write-tree (returns exit code 1 on conflict)
+    rc, output = run_cmd(["git", "merge-tree", "--write-tree", target_ref, "HEAD"])
+    has_conflict = False
+    if rc != 0:
+        has_conflict = True
+    elif rc == 0 and len(output.strip().splitlines()) == 1 and len(output.strip()) == 40:
+        # Clean merge tree SHA
+        has_conflict = False
+    else:
+        # Fallback verification for older git with 3-positional-arg form
+        base_sha = merge_base.strip()
+        rc3, output3 = run_cmd(["git", "merge-tree", base_sha, target_ref, "HEAD"])
+        if "+<<<<<<<" in output3 or "\n<<<<<<<" in output3:
+            has_conflict = True
+            output = output3
+
+    if has_conflict:
+        print(f"  ❌ [FAIL] Git merge conflicts detected with {target_ref}:\n{output[:500]}")
         return False
-    print("  ✅ [PASS] In-memory Git merge simulation succeeded cleanly with 0 conflicts.")
+    print(f"  ✅ [PASS] In-memory Git merge simulation with {target_ref} succeeded cleanly with 0 conflicts.")
     return True
 
 

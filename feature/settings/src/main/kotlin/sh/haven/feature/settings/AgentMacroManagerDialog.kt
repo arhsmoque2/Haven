@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -60,6 +61,7 @@ fun AgentMacroManagerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        modifier = Modifier.testTag("macro_manager_dialog"),
         title = {
             Text(
                 text = stringResource(R.string.settings_agent_macro_dialog_title),
@@ -78,7 +80,8 @@ fun AgentMacroManagerDialog(
                         onClick = {
                             editingIndex = null
                             showEditDialog = true
-                        }
+                        },
+                        modifier = Modifier.testTag("btn_add_macro")
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))

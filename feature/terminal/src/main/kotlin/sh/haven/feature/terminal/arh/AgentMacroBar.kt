@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -55,7 +56,8 @@ fun AgentMacroBar(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(40.dp),
+            .height(40.dp)
+            .testTag("agent_macro_bar"),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
         tonalElevation = 2.dp
     ) {
@@ -71,7 +73,9 @@ fun AgentMacroBar(
             if (onOpenRepoSelector != null) {
                 IconButton(
                     onClick = onOpenRepoSelector,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier
+                        .size(32.dp)
+                        .testTag("btn_macro_repos")
                 ) {
                     Icon(
                         imageVector = Icons.Default.Source,
@@ -85,7 +89,9 @@ fun AgentMacroBar(
             // Quick 1-Tap Code Extractor Trigger
             IconButton(
                 onClick = onOpenCodeExtractor,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier
+                    .size(32.dp)
+                    .testTag("btn_macro_code_extract")
             ) {
                 Icon(
                     imageVector = Icons.Default.DataObject,
@@ -98,7 +104,9 @@ fun AgentMacroBar(
             // Quick 1-Tap Prompt Book Trigger
             IconButton(
                 onClick = onOpenPromptBook,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier
+                    .size(32.dp)
+                    .testTag("btn_macro_prompt_book")
             ) {
                 Icon(
                     imageVector = Icons.Default.MenuBook,
@@ -111,7 +119,9 @@ fun AgentMacroBar(
             // Quick 1-Tap Markdown Transcript Download/Share Trigger
             IconButton(
                 onClick = onExportTranscriptMarkdown,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier
+                    .size(32.dp)
+                    .testTag("btn_macro_export")
             ) {
                 Icon(
                     imageVector = Icons.Default.Download,
@@ -169,7 +179,9 @@ fun AgentMacroBar(
                     },
                     colors = chipColors,
                     shape = RoundedCornerShape(6.dp),
-                    modifier = Modifier.height(30.dp)
+                    modifier = Modifier
+                        .height(30.dp)
+                        .testTag("btn_macro_item")
                 )
             }
 
@@ -177,7 +189,9 @@ fun AgentMacroBar(
                 Spacer(modifier = Modifier.width(4.dp))
                 IconButton(
                     onClick = onOpenSettings,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier
+                        .size(32.dp)
+                        .testTag("btn_macro_settings")
                 ) {
                     Icon(
                         imageVector = Icons.Default.Settings,

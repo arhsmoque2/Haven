@@ -41,6 +41,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -455,6 +458,10 @@ internal fun FloatingTextInputDialog(
     )
     val resizeHandleDescription = stringResource(R.string.terminal_text_input_resize_handle)
 
+    val imeBottom = WindowInsets.ime.getBottom(density).toFloat()
+    val effectiveScreenHeightPx = (screenHeightPx - imeBottom).coerceAtLeast(minHeightPx)
+    val clampedOffsetY = offsetY.coerceIn(0f, (effectiveScreenHeightPx - windowHeightPx).coerceAtLeast(0f))
+
     Popup(
         onDismissRequest = onDismiss,
         properties = PopupProperties(focusable = true),
@@ -473,12 +480,13 @@ internal fun FloatingTextInputDialog(
         ) {
             Column(
                 modifier = Modifier
-                    .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+                    .offset { IntOffset(offsetX.roundToInt(), clampedOffsetY.roundToInt()) }
                     .width(with(density) { windowWidthPx.toDp() })
                     .background(
                         MaterialTheme.colorScheme.surface,
                         RoundedCornerShape(12.dp),
-                    ),
+                    )
+                    .testTag("floating_text_input_dialog"),
             ) {
                 // Draggable header with title and close button
                 Row(
@@ -561,6 +569,7 @@ internal fun FloatingTextInputDialog(
                                 .weight(1f)
                                 .fillMaxHeight()
                                 .focusRequester(textFieldFocusRequester)
+                                .testTag("input_floating_text")
                                 .onKeyEvent { keyEvent ->
                                     if (keyEvent.type == KeyEventType.KeyDown && keyEvent.key == Key.Escape) {
                                         val now = System.currentTimeMillis()
@@ -589,7 +598,9 @@ internal fun FloatingTextInputDialog(
                     ) {
                         IconButton(
                             onClick = onSend,
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier
+                                .size(48.dp)
+                                .testTag("btn_floating_text_send"),
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Filled.Send,

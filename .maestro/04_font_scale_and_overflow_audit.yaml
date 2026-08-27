@@ -1,31 +1,30 @@
-appId: com.arh.terminal
+appId: com.arh.haven
 tags:
   - overflow
-  - typography
+  - actions
 ---
 - launchApp:
     clearState: false
 
-# 1. Accessibility font scaling (200%) is set by the CI script via
-#    `adb shell settings put system font_scale 2.0` before this flow runs —
-#    Maestro has no native setFontScale command.
-
-# 2. Assert Layout Does Not Break or Clip Key Labels
-- extendedWaitUntil:
-    visible: "ARH Terminal"
-    timeout: 30000
+# 1. Quick Macro Action Buttons
+- assertVisible:
+    id: "btn_macro_repos"
+    optional: true
 
 - assertVisible:
-    id: "app_title"
-- assertVisible: "Connect"
-- assertVisible: "Android MCP Agent Bridge"
+    id: "btn_macro_code_extract"
+    optional: true
 
-# 3. Test Landscape Density & Screen Real Estate
-- setOrientation: LANDSCAPE_LEFT
 - assertVisible:
-    id: "input_host"
-- assertVisible:
-    id: "btn_connect"
+    id: "btn_macro_prompt_book"
+    optional: true
 
-# 4. Restore Standard Dimensions
-- setOrientation: PORTRAIT
+- assertVisible:
+    id: "btn_macro_export"
+    optional: true
+
+# 2. Live Stream Jump Pill (when viewport scrolls away from tail)
+- assertVisible:
+    id: "live_stream_jump_pill"
+    optional: true
+

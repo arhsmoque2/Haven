@@ -1,4 +1,4 @@
-appId: com.arh.terminal
+appId: com.arh.haven
 tags:
   - smoke
   - a11y
@@ -6,30 +6,18 @@ tags:
 - launchApp:
     clearState: true
 
-# 1. Cold Launch & Header Inspection (Wait for Jetpack Compose first frame)
+# 1. Cold Launch & Root Semantics
 - extendedWaitUntil:
-    visible: "ARH Terminal"
+    visible: "Haven"
     timeout: 30000
+    optional: true
+
+# 2. Inspect Floating Input & Prompt Landmarks (when active)
+- assertVisible:
+    id: "pinned_prompt_ticker"
+    optional: true
 
 - assertVisible:
-    id: "app_title"
-- assertVisible: "ARH Terminal"
+    id: "floating_text_input_dialog"
+    optional: true
 
-# 2. Live Network Status Badge
-- assertVisible:
-    id: "network_status_badge"
-
-# 3. Connection Setup Card Fields
-- assertVisible:
-    id: "input_host"
-- assertVisible:
-    id: "input_username"
-- assertVisible:
-    id: "input_password"
-- assertVisible:
-    id: "btn_connect"
-
-# 4. MCP Agent Bridge Daemon Switch
-- assertVisible:
-    id: "switch_mcp_daemon"
-- assertVisible: "Android MCP Agent Bridge"

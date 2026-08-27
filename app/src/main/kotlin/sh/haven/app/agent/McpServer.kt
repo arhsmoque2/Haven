@@ -1446,11 +1446,13 @@ class McpServer @Inject constructor(
     ): Any? {
         // Loopback auto-trust: only a DEVICE-origin client (the plain
         // loopback binder) can be treated as already-paired and
-        // consent-bypassed, and only when the user opted in. TUNNELED
-        // traffic also arrives on 127.0.0.1 but its far end is a remote
-        // host — never trusted (#mcp-backbone Stage 2). LAN / WireGuard
-        // always run the full gate. (#214)
-        val trusted = autoApproveEnabled || (origin == McpOrigin.DEVICE && trustLoopbackEnabled)
+        // consent-bypassed, and only when the user opted in (via trustLoopbackEnabled
+        // or autoApproveEnabled). TUNNELED traffic also arrives on 127.0.0.1 but its
+        // far end is a remote host — never trusted (#mcp-backbone Stage 2). LAN / WireGuard
+        // always run the authentication gate. (#214)
+        val isLocalTrusted = (autoApproveEnabled && origin == McpOrigin.DEVICE) || (origin == McpOrigin.DEVICE && trustLoopbackEnabled)
+        val consentBypassed = isLocalTrusted || autoApproveEnabled
+
         // Authentication gate (#mcp-backbone Stage 3): every method except
         // the pair-or-fail path itself requires a credential — the bearer
         // pairing token ([authClient], verified upstream) or a session id
@@ -1463,7 +1465,7 @@ class McpServer @Inject constructor(
         // `notifications/initialized` is a spec-required ack sent right
         // after `initialize` and is exempt so a paired client that just
         // finished its handshake doesn't silently fail it.
-        if (!trusted && method != "initialize" && method != "ping" && method != "notifications/initialized") {
+        if (!isLocalTrusted && method != "initialize" && method != "ping" && method != "notifications/initialized") {
             val sessionClient = requestSessionId?.let { sessions[it]?.clientName }
             if (authClient == null && requestSessionId != null && sessionClient == null) {
                 // The client sent a session id we don't recognise.
@@ -1488,12 +1490,12 @@ class McpServer @Inject constructor(
             }
         }
         return when (method) {
-            "initialize" -> handleInitialize(params, trusted, authClient)
+            "initialize" -> handleInitialize(params, isLocalTrusted, authClient)
             "notifications/initialized" -> JSONObject() // ack
             "tools/list" -> handleToolsList()
-            "tools/call" -> handleToolsCall(params, trusted, origin)
+            "tools/call" -> handleToolsCall(params, consentBypassed, origin)
             "resources/list" -> handleResourcesList()
-            "resources/read" -> handleResourcesRead(params, trusted)
+            "resources/read" -> handleResourcesRead(params, consentBypassed)
             "ping" -> JSONObject()
             else -> throw McpError(-32601, "Method not found: $method")
         }

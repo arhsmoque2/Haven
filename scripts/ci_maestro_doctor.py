@@ -15,27 +15,44 @@ if hasattr(sys.stdout, "reconfigure"):
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MAESTRO_DIR = REPO_ROOT / ".maestro"
-APP_SRC_DIR = REPO_ROOT / "app" / "src" / "main" / "java"
+SRC_DIRS = [
+    REPO_ROOT / "app" / "src" / "main",
+    REPO_ROOT / "feature",
+    REPO_ROOT / "core",
+]
+MAIN_ACTIVITY_FILE = (
+    REPO_ROOT
+    / "app"
+    / "src"
+    / "main"
+    / "kotlin"
+    / "sh"
+    / "haven"
+    / "app"
+    / "MainActivity.kt"
+)
 
 
 def collect_codebase_test_tags() -> set[str]:
     tags = set()
     tag_regex = re.compile(r'testTag\(\s*"([^"]+)"\s*\)')
 
-    for kt_file in APP_SRC_DIR.rglob("*.kt"):
-        content = kt_file.read_text(encoding="utf-8", errors="replace")
-        for match in tag_regex.findall(content):
-            tags.add(match)
+    for src_dir in SRC_DIRS:
+        if not src_dir.exists():
+            continue
+        for kt_file in src_dir.rglob("*.kt"):
+            content = kt_file.read_text(encoding="utf-8", errors="replace")
+            for match in tag_regex.findall(content):
+                tags.add(match)
 
     return tags
 
 
 def verify_semantics_resource_id_mapping() -> bool:
     """Verifies that Jetpack Compose root semantics maps testTags to Android resource IDs for external accessibility tools (Maestro/UIAutomator)."""
-    main_activity = APP_SRC_DIR / "com" / "arh" / "terminal" / "MainActivity.kt"
-    if not main_activity.exists():
+    if not MAIN_ACTIVITY_FILE.exists():
         return False
-    content = main_activity.read_text(encoding="utf-8", errors="replace")
+    content = MAIN_ACTIVITY_FILE.read_text(encoding="utf-8", errors="replace")
     return "testTagsAsResourceId = true" in content
 
 
@@ -104,8 +121,9 @@ def main():
         print(f"   -> Referenced testTags ({len(ref_ids)}): {ref_ids}")
 
         # Check appId
-        if app_id != "com.arh.terminal":
-            print(f"   [WARN] Unexpected appId '{app_id}', expected 'com.arh.terminal'")
+        if app_id != "com.arh.haven":
+            print(f"   [FAIL] Unexpected appId '{app_id}', expected 'com.arh.haven'")
+            has_errors = True
 
         # Check testTag resolution
         for tag in ref_ids:

@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
@@ -56,7 +57,8 @@ fun PinnedPromptTicker(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(34.dp),
+            .height(34.dp)
+            .testTag("pinned_prompt_ticker"),
         color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
         tonalElevation = 2.dp,
     ) {
@@ -118,7 +120,9 @@ fun PinnedPromptTicker(
             ) {
                 IconButton(
                     onClick = onJumpToPrevious,
-                    modifier = Modifier.size(26.dp),
+                    modifier = Modifier
+                        .size(26.dp)
+                        .testTag("btn_prompt_prev"),
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowUp,
@@ -130,7 +134,9 @@ fun PinnedPromptTicker(
 
                 IconButton(
                     onClick = onJumpToNext,
-                    modifier = Modifier.size(26.dp),
+                    modifier = Modifier
+                        .size(26.dp)
+                        .testTag("btn_prompt_next"),
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
@@ -142,7 +148,9 @@ fun PinnedPromptTicker(
 
                 IconButton(
                     onClick = onOpenListSheet,
-                    modifier = Modifier.size(26.dp),
+                    modifier = Modifier
+                        .size(26.dp)
+                        .testTag("btn_prompt_list"),
                 ) {
                     Icon(
                         imageVector = Icons.Default.ViewList,

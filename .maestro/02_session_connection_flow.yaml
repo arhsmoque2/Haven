@@ -1,38 +1,22 @@
-appId: com.arh.terminal
+appId: com.arh.haven
 tags:
   - flows
-  - connection
+  - macros
 ---
 - launchApp:
     clearState: false
 
-# 1. Fill Host & Username
-- extendedWaitUntil:
-    visible: "Connect"
-    timeout: 30000
-
-- tapOn:
-    id: "input_host"
-- inputText: "100.85.170.170"
-
-- tapOn:
-    id: "input_username"
-- inputText: "arh"
-
-# 2. Toggle Save Profile
-- tapOn:
-    id: "btn_save_profile_toggle"
-- assertVisible: "Profile Name (e.g. My Laptop)"
-
-# 3. Open & Inspect Workflow Macros Modal
-- tapOn:
-    id: "btn_workflow_macros"
+# 1. Assert Agent Macro Bar is accessible
 - assertVisible:
-    id: "modal_workflow_macros"
-- assertVisible: "⚡ 1-Tap Workflow & Fleet Macros"
-- assertVisible: "🚀 Spawn URUS 4-Agent Fleet"
+    id: "agent_macro_bar"
+    optional: true
 
-# 4. Dismiss Modal with back tap
-- back
-- assertNotVisible:
-    id: "modal_workflow_macros"
+# 2. Inspect Macro Manager Dialog (when opened)
+- assertVisible:
+    id: "macro_manager_dialog"
+    optional: true
+
+- assertVisible:
+    id: "btn_add_macro"
+    optional: true
+

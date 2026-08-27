@@ -551,7 +551,7 @@ Every password, passphrase and secret already stored in Haven will need to be en
     <string name="settings_agent_macro_destructive">Mark as destructive (Red tint)</string>
 
     <string name="settings_agent_autonomous_mode_title">Autonomous Agent Mode (Auto-Approve)</string>
-    <string name="settings_agent_autonomous_mode_subtitle">Bypass all consent sheets and execute tool calls directly across Local, LAN, and Tailscale</string>
+    <string name="settings_agent_autonomous_mode_subtitle">Bypass consent sheets for device agents, and auto-approve tool calls for authenticated paired LAN &amp; Tailscale agents</string>
     <string name="settings_agent_custom_endpoint_title">Custom Endpoint Host &amp; Port</string>
     <string name="settings_agent_custom_endpoint_subtitle">Configure Tailscale IP/domain (%1$s) and port (%2$d) for remote agents</string>
     <string name="settings_agent_custom_endpoint_dialog_title">Custom MCP Endpoint</string>
