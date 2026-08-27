@@ -9,9 +9,20 @@ on:
   # slow/low-per-commit-signal work pulled off every main push (below) still
   # runs within 24h, so a lint regression or an x64/armv7-specific breakage
   # the arm64-only per-push build would miss is caught daily.
-  schedule:
-    - cron: '0 3 * * *'  # 03:00 UTC daily
   workflow_dispatch:
+    inputs:
+      build_apk:
+        description: 'Build and attach APK artifacts'
+        type: boolean
+        default: true
+      flavor:
+        description: 'Target flavor to build'
+        type: choice
+        options:
+          - 'arm64Terminal (Lean ~25MB)'
+          - 'arm64Full (Full desktop ~45MB)'
+          - 'both'
+        default: 'arm64Terminal (Lean ~25MB)'
 
 concurrency:
   # Event-scoped so a main push doesn't cancel an in-flight nightly (both
@@ -318,6 +329,14 @@ jobs:
           retention-days: 14
 
   build:
+    # Runs on manual dispatch, nightly schedule, main pushes, or when requested via [build] / [build-apk] in commit message.
+    # Prevents producing redundant artifact copies on routine feature pushes.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      github.ref == 'refs/heads/main' ||
+      contains(github.event.head_commit.message, '[build]') ||
+      contains(github.event.head_commit.message, '[build-apk]')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
