@@ -52,7 +52,7 @@ fun PinnedPromptTicker(
     if (bookmarks.isEmpty()) return
 
     val currentBookmark = bookmarks.getOrNull(currentIndex) ?: bookmarks.last()
-    val displayIndex = (currentIndex.coerceIn(0, bookmarks.size - 1)) + 1
+    val displayIndex = PromptBookmarkNavigator.displayIndex(currentIndex, bookmarks.size)
 
     Surface(
         modifier = modifier

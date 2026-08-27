@@ -1631,7 +1631,7 @@ fun TerminalScreen(
                         val doPaste: () -> Unit = {
                             val text = realClipboard.getText()?.text
                             if (!text.isNullOrEmpty()) {
-                                if (safeMultiLinePasteEnabled && text.contains("\n") && text.trim().lines().size > 1) {
+                                if (sh.haven.feature.terminal.arh.SafePasteGuard.shouldIntercept(text, safeMultiLinePasteEnabled)) {
                                     // Safe Multi-Line Paste Guard (ADR-003): Auto-route multi-line text into Floating Input Dialog
                                     textInputDrafts = HashMap(textInputDrafts).apply {
                                         put(activeTab.sessionId, text.toString())
@@ -1822,9 +1822,9 @@ fun TerminalScreen(
 
                         // Live Stream Floating Jump Pill (ADR-003)
                         val scrollCtrl = activeTab?.sessionId?.let { viewModel.terminalSessionRegistry.entry(it)?.scrollController }
-                        val isScrolledUp = (scrollCtrl?.scrollbackPosition ?: 0) > 0
+                        val scrollbackPos = scrollCtrl?.scrollbackPosition ?: 0
                         sh.haven.feature.terminal.arh.LiveStreamJumpPill(
-                            visible = stickyViewportAnchorEnabled && isScrolledUp,
+                            visible = sh.haven.feature.terminal.arh.LiveStreamAnchorGuard.shouldShowPill(stickyViewportAnchorEnabled, scrollbackPos),
                             unreadLines = unreadAgentLines,
                             onClick = {
                                 scrollCtrl?.scrollToBottom()
@@ -1843,7 +1843,7 @@ fun TerminalScreen(
                             bookmarks = currentBookmarks,
                             currentIndex = currentBookmarkIndex,
                             onJumpToPrevious = {
-                                if (currentBookmarkIndex > 0) currentBookmarkIndex--
+                                currentBookmarkIndex = sh.haven.feature.terminal.arh.PromptBookmarkNavigator.previousIndex(currentBookmarkIndex)
                                 val b = currentBookmarks.getOrNull(currentBookmarkIndex)
                                 if (b != null) {
                                     val scrollCtrl = viewModel.terminalSessionRegistry.entry(activeTab.sessionId)?.scrollController
@@ -1852,7 +1852,7 @@ fun TerminalScreen(
                                 }
                             },
                             onJumpToNext = {
-                                if (currentBookmarkIndex < currentBookmarks.size - 1) currentBookmarkIndex++
+                                currentBookmarkIndex = sh.haven.feature.terminal.arh.PromptBookmarkNavigator.nextIndex(currentBookmarkIndex, currentBookmarks.size)
                                 val b = currentBookmarks.getOrNull(currentBookmarkIndex)
                                 if (b != null) {
                                     val scrollCtrl = viewModel.terminalSessionRegistry.entry(activeTab.sessionId)?.scrollController

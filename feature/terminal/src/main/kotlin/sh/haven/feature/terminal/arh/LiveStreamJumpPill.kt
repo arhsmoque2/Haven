@@ -31,6 +31,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
+ * Sticky Viewport Anchoring & Live Stream Guard (ADR-003).
+ * Governs when the floating jump pill should be visible to allow 1-tap snaps back to the live tail.
+ */
+object LiveStreamAnchorGuard {
+    fun shouldShowPill(stickyAnchorEnabled: Boolean, scrollbackPosition: Int): Boolean {
+        return stickyAnchorEnabled && scrollbackPosition > 0
+    }
+
+    fun isScrolledAwayFromTail(scrollbackPosition: Int): Boolean {
+        return scrollbackPosition > 0
+    }
+}
+
+/**
  * Floating Action Pill rendered when the user is reading scrolled-up history
  * while an autonomous agent streams new output off-screen.
  */

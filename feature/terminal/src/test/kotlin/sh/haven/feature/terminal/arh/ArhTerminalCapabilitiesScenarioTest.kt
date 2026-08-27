@@ -9,12 +9,12 @@ import sh.haven.core.data.preferences.PromptBookmark
 
 /**
  * Comprehensive Scenario Test Suite covering all ARH Terminal capabilities:
- * 1. Semantic Prompt Landmark Pinning & Bidirectional Stepping
- * 2. Safe Multi-Line Paste Interception Guard
- * 3. Sticky Viewport Anchoring & Live Stream Tail Snap
- * 4. Agent Quick-Action Rail & Macro Execution
- * 5. Code Block Extraction & Parsing
- * 6. Markdown Transcript Export
+ * 1. Semantic Prompt Landmark Pinning & Bidirectional Stepping (PromptBookmarkNavigator)
+ * 2. Safe Multi-Line Paste Interception Guard (SafePasteGuard)
+ * 3. Sticky Viewport Anchoring & Live Stream Tail Snap (LiveStreamAnchorGuard)
+ * 4. Agent Quick-Action Rail & Macro Execution (AgentMacro)
+ * 5. Code Block Extraction & Parsing (CodeBlockParser)
+ * 6. Markdown Transcript Export (TerminalMarkdownExporter)
  */
 class ArhTerminalCapabilitiesScenarioTest {
 
@@ -37,35 +37,38 @@ class ArhTerminalCapabilitiesScenarioTest {
         var currentIndex = 0
         assertEquals("git status", bookmarks[currentIndex].promptText)
         assertEquals(15, bookmarks[currentIndex].lineIndex)
+        assertEquals(1, PromptBookmarkNavigator.displayIndex(currentIndex, bookmarks.size))
 
-        // Step Next (Tap Down: 0 -> 1)
-        if (currentIndex < bookmarks.size - 1) currentIndex++
+        // Step Next (Tap Down: 0 -> 1) via production PromptBookmarkNavigator
+        currentIndex = PromptBookmarkNavigator.nextIndex(currentIndex, bookmarks.size)
         assertEquals(1, currentIndex)
         assertEquals("cargo test --lib", bookmarks[currentIndex].promptText)
         assertEquals(62, bookmarks[currentIndex].lineIndex)
+        assertEquals(2, PromptBookmarkNavigator.displayIndex(currentIndex, bookmarks.size))
 
-        // Step Next (Tap Down: 1 -> 2)
-        if (currentIndex < bookmarks.size - 1) currentIndex++
+        // Step Next (Tap Down: 1 -> 2) via production PromptBookmarkNavigator
+        currentIndex = PromptBookmarkNavigator.nextIndex(currentIndex, bookmarks.size)
         assertEquals(2, currentIndex)
         assertEquals("docker compose up -d", bookmarks[currentIndex].promptText)
         assertEquals(140, bookmarks[currentIndex].lineIndex)
+        assertEquals(3, PromptBookmarkNavigator.displayIndex(currentIndex, bookmarks.size))
 
         // Step Next beyond end -> clamped at last index (2)
-        if (currentIndex < bookmarks.size - 1) currentIndex++
+        currentIndex = PromptBookmarkNavigator.nextIndex(currentIndex, bookmarks.size)
         assertEquals(2, currentIndex)
 
-        // Step Prev (Tap Up: 2 -> 1)
-        if (currentIndex > 0) currentIndex--
+        // Step Prev (Tap Up: 2 -> 1) via production PromptBookmarkNavigator
+        currentIndex = PromptBookmarkNavigator.previousIndex(currentIndex)
         assertEquals(1, currentIndex)
         assertEquals("cargo test --lib", bookmarks[currentIndex].promptText)
 
-        // Step Prev (Tap Up: 1 -> 0)
-        if (currentIndex > 0) currentIndex--
+        // Step Prev (Tap Up: 1 -> 0) via production PromptBookmarkNavigator
+        currentIndex = PromptBookmarkNavigator.previousIndex(currentIndex)
         assertEquals(0, currentIndex)
         assertEquals("git status", bookmarks[currentIndex].promptText)
 
         // Step Prev before start -> clamped at index 0
-        if (currentIndex > 0) currentIndex--
+        currentIndex = PromptBookmarkNavigator.previousIndex(currentIndex)
         assertEquals(0, currentIndex)
     }
 
@@ -110,29 +113,10 @@ class ArhTerminalCapabilitiesScenarioTest {
             echo "Finished deploy"
         """.trimIndent()
 
-        var rawPtyBytesSent = 0
-        var interceptedDraft: String? = null
-        var isFloatingDialogOpen = false
-
-        // Paste Handler Logic mimicking Haven TerminalScreen
-        val handlePaste: (String) -> Unit = { text ->
-            if (safeMultiLinePasteEnabled && text.contains("\n") && text.trim().lines().size > 1) {
-                // Intercepted into Floating Input Dialog draft
-                interceptedDraft = text
-                isFloatingDialogOpen = true
-            } else {
-                // Sent directly to PTY execution stream
-                rawPtyBytesSent += text.toByteArray().size
-            }
-        }
-
-        handlePaste(dangerousPaste)
-
-        // CRITICAL ASSERTION: Zero bytes sent to PTY execution stream!
-        assertEquals("No raw bytes must reach PTY on multi-line paste", 0, rawPtyBytesSent)
-        assertTrue("Floating dialog must open", isFloatingDialogOpen)
-        assertEquals(dangerousPaste, interceptedDraft)
-        assertEquals(3, interceptedDraft!!.lines().size)
+        // Calls production SafePasteGuard directly
+        val intercepted = SafePasteGuard.shouldIntercept(dangerousPaste, safeMultiLinePasteEnabled)
+        assertTrue("SafePasteGuard must intercept dangerous multi-line paste", intercepted)
+        assertEquals(3, dangerousPaste.lines().size)
     }
 
     @Test
@@ -140,22 +124,9 @@ class ArhTerminalCapabilitiesScenarioTest {
         val safeMultiLinePasteEnabled = true
         val singleLineCommand = "cargo nextest run --workspace"
 
-        var rawPtyBytesSent = 0
-        var isFloatingDialogOpen = false
-
-        val handlePaste: (String) -> Unit = { text ->
-            if (safeMultiLinePasteEnabled && text.contains("\n") && text.trim().lines().size > 1) {
-                isFloatingDialogOpen = true
-            } else {
-                rawPtyBytesSent += text.toByteArray().size
-            }
-        }
-
-        handlePaste(singleLineCommand)
-
-        assertFalse("Floating dialog must NOT open for single-line commands", isFloatingDialogOpen)
-        assertTrue("Raw bytes must reach PTY directly", rawPtyBytesSent > 0)
-        assertEquals(singleLineCommand.toByteArray().size, rawPtyBytesSent)
+        // Calls production SafePasteGuard directly
+        val intercepted = SafePasteGuard.shouldIntercept(singleLineCommand, safeMultiLinePasteEnabled)
+        assertFalse("SafePasteGuard must NOT intercept single-line commands", intercepted)
     }
 
     @Test
@@ -163,21 +134,9 @@ class ArhTerminalCapabilitiesScenarioTest {
         val safeMultiLinePasteEnabled = false
         val multiLineText = "line1\nline2\nline3"
 
-        var rawPtyBytesSent = 0
-        var isFloatingDialogOpen = false
-
-        val handlePaste: (String) -> Unit = { text ->
-            if (safeMultiLinePasteEnabled && text.contains("\n") && text.trim().lines().size > 1) {
-                isFloatingDialogOpen = true
-            } else {
-                rawPtyBytesSent += text.toByteArray().size
-            }
-        }
-
-        handlePaste(multiLineText)
-
-        assertFalse(isFloatingDialogOpen)
-        assertEquals(multiLineText.toByteArray().size, rawPtyBytesSent)
+        // Calls production SafePasteGuard directly
+        val intercepted = SafePasteGuard.shouldIntercept(multiLineText, safeMultiLinePasteEnabled)
+        assertFalse("SafePasteGuard must NOT intercept when disabled in preferences", intercepted)
     }
 
     // ========================================================================
@@ -186,38 +145,42 @@ class ArhTerminalCapabilitiesScenarioTest {
 
     @Test
     fun scenario3_stickyViewportAnchoringAndLiveStreamJumpPill() {
-        // Initial state: buffer has 100 lines, user is at the bottom tail (line 100)
-        var totalBufferLines = 100
-        var currentScrollIndex = 100
-        val visibleWindowHeight = 25
+        val stickyViewportAnchorEnabled = true
 
-        // User scrolls UP to review history at line 40
-        currentScrollIndex = 40
-        val isScrolledAwayFromTail = currentScrollIndex < (totalBufferLines - visibleWindowHeight)
-        assertTrue("User is scrolled up reading history", isScrolledAwayFromTail)
+        // Initial state: buffer at live tail (scrollback position = 0)
+        var scrollbackPosition = 0
+        assertFalse(
+            "Jump pill hidden when at live tail",
+            LiveStreamAnchorGuard.shouldShowPill(stickyViewportAnchorEnabled, scrollbackPosition)
+        )
+        assertFalse(
+            "User is not scrolled away from tail",
+            LiveStreamAnchorGuard.isScrolledAwayFromTail(scrollbackPosition)
+        )
 
-        // Agent produces 35 new streaming lines while user is still reading line 40
-        val anchorLineBeforeStream = currentScrollIndex
-        totalBufferLines += 35
+        // User scrolls UP to review history (scrollback position = 60 lines away from bottom)
+        scrollbackPosition = 60
+        assertTrue(
+            "User is scrolled up reading history",
+            LiveStreamAnchorGuard.isScrolledAwayFromTail(scrollbackPosition)
+        )
+        assertTrue(
+            "LiveStreamAnchorGuard shows pill when scrolled up with sticky anchor enabled",
+            LiveStreamAnchorGuard.shouldShowPill(stickyViewportAnchorEnabled, scrollbackPosition)
+        )
 
-        // Viewport position remains anchored (does NOT jump down)
-        assertEquals(40, anchorLineBeforeStream)
+        // If sticky anchoring is disabled in preferences
+        assertFalse(
+            "Jump pill hidden if sticky anchor preference is disabled",
+            LiveStreamAnchorGuard.shouldShowPill(stickyAnchorEnabled = false, scrollbackPosition = scrollbackPosition)
+        )
 
-        // Compute unread stream count
-        val unreadLines = totalBufferLines - 100
-        assertEquals(35, unreadLines)
-
-        // LiveStreamJumpPill condition
-        val pillVisible = isScrolledAwayFromTail && unreadLines > 0
-        assertTrue("Live Stream Jump Pill must be visible", pillVisible)
-
-        // User taps the Jump Pill -> snap directly to live tail
-        currentScrollIndex = totalBufferLines
-        val unreadAfterSnap = 0
-        val pillVisibleAfterSnap = (currentScrollIndex < (totalBufferLines - visibleWindowHeight)) && unreadAfterSnap > 0
-
-        assertEquals(135, currentScrollIndex)
-        assertFalse("Jump pill dismisses upon snapping to tail", pillVisibleAfterSnap)
+        // User taps jump pill -> viewport snaps to bottom (scrollback position = 0)
+        scrollbackPosition = 0
+        assertFalse(
+            "Jump pill dismisses upon snapping to tail",
+            LiveStreamAnchorGuard.shouldShowPill(stickyViewportAnchorEnabled, scrollbackPosition)
+        )
     }
 
     // ========================================================================
