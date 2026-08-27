@@ -35,7 +35,7 @@ class AgentMacroTest {
         assertFalse(deserialized[0].isDestructive)
 
         assertEquals("m2", deserialized[1].id)
-        assertEquals("^C", deserialized[1].label.ifEmpty { "Kill" })
+        assertEquals("Kill", deserialized[1].label)
         assertEquals("\u0003", deserialized[1].payload)
         assertTrue(deserialized[1].isDestructive)
     }

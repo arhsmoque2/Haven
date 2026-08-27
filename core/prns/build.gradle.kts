@@ -77,6 +77,12 @@ val buildPrnsNative by tasks.registering(Exec::class) {
         "-t", "arm64-v8a", "-t", "armeabi-v7a", "-t", "x86_64",
         "build", "--release",
     )
+
+    onlyIf {
+        val skipped = providers.gradleProperty("skipPrnsNatives").orNull == "true"
+        if (skipped) logger.lifecycle("[prns] -PskipPrnsNatives — not building")
+        !skipped
+    }
 }
 
 tasks.configureEach {

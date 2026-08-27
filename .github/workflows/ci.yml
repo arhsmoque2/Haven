@@ -304,7 +304,7 @@ jobs:
   lint:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -320,7 +320,7 @@ jobs:
         # inside clang++). A job killed by a timeout reports `cancelled`, which
         # reads as "superseded" — so the nightly lint gate stopped producing a
         # verdict and nothing said so.
-        run: ./gradlew lintDebug -PskipWaylandNatives=true -PskipFfmpegNatives=true
+        run: ./gradlew lintDebug -PskipWaylandNatives=true -PskipFfmpegNatives=true -PskipPrnsNatives=true -PskipRdpNatives=true
       - name: Upload lint results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -415,7 +415,7 @@ jobs:
   release-r8-smoke:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -428,6 +428,6 @@ jobs:
         # native builds anyway. This job hit its 30-minute timeout on the same
         # three nights, so the R8-keep assertion below has not actually run
         # since the from-source work landed.
-        run: ./gradlew :app:minifyArm64FullReleaseWithR8 -PskipWaylandNatives=true -PskipFfmpegNatives=true
+        run: ./gradlew :app:minifyArm64FullReleaseWithR8 -PskipWaylandNatives=true -PskipFfmpegNatives=true -PskipPrnsNatives=true -PskipRdpNatives=true
       - name: Assert reflectively-loaded classes survived R8
         run: ./scripts/check-r8-kept-classes.sh
