@@ -177,6 +177,64 @@ def main():
         / "SessionJournaler.kt"
     )
 
+    adr3_file = root / "docs" / "adr" / "ADR-003-semantic-prompt-pinning-viewport-guard.md"
+    bookmark_file = (
+        root
+        / "core"
+        / "data"
+        / "src"
+        / "main"
+        / "kotlin"
+        / "sh"
+        / "haven"
+        / "core"
+        / "data"
+        / "preferences"
+        / "PromptBookmark.kt"
+    )
+    ticker_file = (
+        root
+        / "feature"
+        / "terminal"
+        / "src"
+        / "main"
+        / "kotlin"
+        / "sh"
+        / "haven"
+        / "feature"
+        / "terminal"
+        / "arh"
+        / "PinnedPromptTicker.kt"
+    )
+    pinned_sheet_file = (
+        root
+        / "feature"
+        / "terminal"
+        / "src"
+        / "main"
+        / "kotlin"
+        / "sh"
+        / "haven"
+        / "feature"
+        / "terminal"
+        / "arh"
+        / "PinnedPromptsSheet.kt"
+    )
+    jump_pill_file = (
+        root
+        / "feature"
+        / "terminal"
+        / "src"
+        / "main"
+        / "kotlin"
+        / "sh"
+        / "haven"
+        / "feature"
+        / "terminal"
+        / "arh"
+        / "LiveStreamJumpPill.kt"
+    )
+
     print("=== [As-Built Doctor] Running ARH Haven Architecture & Spec Conformance Audit ===")
 
     # 1. Verify ADRs & Proposal
@@ -195,6 +253,14 @@ def main():
         print("[FAIL] ADR-002 not found in ADR-002 file")
         sys.exit(1)
     print("[PASS] ADR-002 (Autonomous Mobile AI Pair Programming) verified.")
+
+    if not adr3_file.exists():
+        print("[FAIL] Missing ADR-003 in docs/adr")
+        sys.exit(1)
+    if "ADR-003" not in adr3_file.read_text(encoding="utf-8"):
+        print("[FAIL] ADR-003 not found in ADR-003 file")
+        sys.exit(1)
+    print("[PASS] ADR-003 (Semantic Prompt Pinning, Viewport Anchoring & Safe Paste) verified.")
 
     if not proposal_file.exists():
         print("[FAIL] Missing PROPOSAL-ARH-PORT.md in root")
@@ -229,6 +295,15 @@ def main():
         sys.exit(1)
     print("[PASS] WorkspaceRepo data model & serialization verified.")
 
+    if not bookmark_file.exists():
+        print("[FAIL] Missing PromptBookmark.kt")
+        sys.exit(1)
+    bookmark_code = bookmark_file.read_text(encoding="utf-8")
+    if "data class PromptBookmark" not in bookmark_code:
+        print("[FAIL] PromptBookmark.kt missing required model definitions")
+        sys.exit(1)
+    print("[PASS] PromptBookmark data model verified.")
+
     pref_code = pref_file.read_text(encoding="utf-8")
     for key in [
         "agentMacroBarEnabled",
@@ -240,6 +315,9 @@ def main():
         "mcpAutoApproveEnabled",
         "mcpCustomPort",
         "mcpCustomHost",
+        "promptPinningTickerEnabled",
+        "safeMultiLinePasteEnabled",
+        "stickyViewportAnchorEnabled",
     ]:
         if key not in pref_code:
             print(f"[FAIL] UserPreferencesRepository missing preference key/flow: {key}")
@@ -255,12 +333,15 @@ def main():
         exporter_file,
         repo_sheet_file,
         journaler_file,
+        ticker_file,
+        pinned_sheet_file,
+        jump_pill_file,
     ]:
         if not ext_file.exists():
             print(f"[FAIL] Missing terminal ARH extension file: {ext_file.name}")
             sys.exit(1)
     print(
-        "[PASS] CodeBlockParser, AgentMacroBar, CodeExtractionSheet, PromptBookSheet, TerminalMarkdownExporter, WorkspaceRepoSelectorSheet, and SessionJournaler verified."
+        "[PASS] All Terminal ARH Extensions (Parser, MacroBar, Sheets, Exporter, Journaler, PinnedTicker, JumpPill) verified."
     )
 
     # 4. Verify Settings Manager Dialog

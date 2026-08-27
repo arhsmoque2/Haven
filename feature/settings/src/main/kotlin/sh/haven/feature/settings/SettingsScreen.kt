@@ -1383,6 +1383,30 @@ fun SettingsScreen(
                 ),
                 onClick = { showCustomEndpointDialog = true },
             )
+            val promptPinningTickerEnabled by viewModel.promptPinningTickerEnabled.collectAsState()
+            val safeMultiLinePasteEnabled by viewModel.safeMultiLinePasteEnabled.collectAsState()
+            val stickyViewportAnchorEnabled by viewModel.stickyViewportAnchorEnabled.collectAsState()
+            SettingsToggleItem(
+                icon = Icons.Filled.PushPin,
+                title = "Pinned Prompt Ticker (Stream/Element)",
+                subtitle = "Shows 1-line top ticker to step between prompt landmarks",
+                checked = promptPinningTickerEnabled,
+                onCheckedChange = viewModel::setPromptPinningTickerEnabled,
+            )
+            SettingsToggleItem(
+                icon = Icons.Filled.Security,
+                title = "Safe Multi-Line Paste Guard",
+                subtitle = "Auto-routes multi-line clipboard pastes into floating editor before execution",
+                checked = safeMultiLinePasteEnabled,
+                onCheckedChange = viewModel::setSafeMultiLinePasteEnabled,
+            )
+            SettingsToggleItem(
+                icon = Icons.Filled.VerticalAlignBottom,
+                title = "Sticky Viewport Anchoring",
+                subtitle = "Freezes scroll position when reading while agent streams off-screen",
+                checked = stickyViewportAnchorEnabled,
+                onCheckedChange = viewModel::setStickyViewportAnchorEnabled,
+            )
         }
 
         if (showAgentMacroManagerDialog) {

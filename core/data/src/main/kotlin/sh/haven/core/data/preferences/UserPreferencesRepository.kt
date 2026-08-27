@@ -355,6 +355,41 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    // --- Prompt Pinning, Viewport Anchor & Safe Paste Guard ---
+    private val promptPinningTickerEnabledKey = booleanPreferencesKey("prompt_pinning_ticker_enabled")
+    private val safeMultiLinePasteEnabledKey = booleanPreferencesKey("safe_multiline_paste_enabled")
+    private val stickyViewportAnchorEnabledKey = booleanPreferencesKey("sticky_viewport_anchor_enabled")
+
+    val promptPinningTickerEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[promptPinningTickerEnabledKey] ?: true
+    }
+
+    suspend fun setPromptPinningTickerEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[promptPinningTickerEnabledKey] = enabled
+        }
+    }
+
+    val safeMultiLinePasteEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[safeMultiLinePasteEnabledKey] ?: true
+    }
+
+    suspend fun setSafeMultiLinePasteEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[safeMultiLinePasteEnabledKey] = enabled
+        }
+    }
+
+    val stickyViewportAnchorEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[stickyViewportAnchorEnabledKey] ?: true
+    }
+
+    suspend fun setStickyViewportAnchorEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[stickyViewportAnchorEnabledKey] = enabled
+        }
+    }
+
     val biometricEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[biometricEnabledKey] ?: false
     }

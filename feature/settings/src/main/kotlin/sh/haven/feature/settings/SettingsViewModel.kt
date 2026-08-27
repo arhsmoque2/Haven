@@ -519,6 +519,28 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { preferencesRepository.setMcpCustomHost(host) }
     }
 
+    // --- ARH Terminal Navigation & Safe Paste Preferences ---
+    val promptPinningTickerEnabled: StateFlow<Boolean> = preferencesRepository.promptPinningTickerEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setPromptPinningTickerEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setPromptPinningTickerEnabled(enabled) }
+    }
+
+    val safeMultiLinePasteEnabled: StateFlow<Boolean> = preferencesRepository.safeMultiLinePasteEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setSafeMultiLinePasteEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setSafeMultiLinePasteEnabled(enabled) }
+    }
+
+    val stickyViewportAnchorEnabled: StateFlow<Boolean> = preferencesRepository.stickyViewportAnchorEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setStickyViewportAnchorEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setStickyViewportAnchorEnabled(enabled) }
+    }
+
     /** #418 debug: RDP RemoteFX-Progressive upgrade-tile decoding. */
     val rdpProgressiveUpgrade: StateFlow<Boolean> = preferencesRepository.rdpProgressiveUpgrade
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)

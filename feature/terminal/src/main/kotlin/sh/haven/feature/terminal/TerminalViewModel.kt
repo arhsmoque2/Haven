@@ -660,6 +660,50 @@ class TerminalViewModel @Inject constructor(
         saveAgentWorkspaces(current)
     }
 
+    // --- Session Prompt Bookmarks & Timeline Landmarks ---
+    private val _sessionBookmarks = MutableStateFlow<Map<String, List<sh.haven.core.data.preferences.PromptBookmark>>>(emptyMap())
+    val sessionBookmarks: StateFlow<Map<String, List<sh.haven.core.data.preferences.PromptBookmark>>> = _sessionBookmarks.asStateFlow()
+
+    fun addPromptBookmark(sessionId: String, lineIndex: Int, text: String) {
+        val currentList = _sessionBookmarks.value[sessionId].orEmpty().toMutableList()
+        val newBookmark = sh.haven.core.data.preferences.PromptBookmark(
+            sessionId = sessionId,
+            lineIndex = lineIndex,
+            promptText = text.trim()
+        )
+        currentList.add(newBookmark)
+        _sessionBookmarks.value = _sessionBookmarks.value + (sessionId to currentList)
+    }
+
+    fun deletePromptBookmark(sessionId: String, bookmarkId: String) {
+        val currentList = _sessionBookmarks.value[sessionId].orEmpty().filterNot { it.id == bookmarkId }
+        _sessionBookmarks.value = _sessionBookmarks.value + (sessionId to currentList)
+    }
+
+    val promptPinningTickerEnabled: StateFlow<Boolean> =
+        preferencesRepository.promptPinningTickerEnabled
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val safeMultiLinePasteEnabled: StateFlow<Boolean> =
+        preferencesRepository.safeMultiLinePasteEnabled
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val stickyViewportAnchorEnabled: StateFlow<Boolean> =
+        preferencesRepository.stickyViewportAnchorEnabled
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setPromptPinningTickerEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setPromptPinningTickerEnabled(enabled) }
+    }
+
+    fun setSafeMultiLinePasteEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setSafeMultiLinePasteEnabled(enabled) }
+    }
+
+    fun setStickyViewportAnchorEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setStickyViewportAnchorEnabled(enabled) }
+    }
+
     /**
      * Scrollback ring size for newly created emulators (#151). Read at
      * construction by [TerminalEmulatorFactory.create]; existing tabs keep
