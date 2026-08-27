@@ -365,6 +365,12 @@ fun TerminalScreen(
     val agentSavedPrompts by viewModel.agentSavedPrompts.collectAsState()
     val agentSavedWorkspaces by viewModel.agentSavedWorkspaces.collectAsState()
     val sessionBookmarksMap by viewModel.sessionBookmarks.collectAsState()
+    // Hoisted above the key(activeTab.sessionId) block below so the sheets
+    // rendered at the bottom of this function (PromptBookSheet,
+    // WorkspaceRepoSelectorSheet, PinnedPromptsSheet) — which sit outside
+    // that block — can still reference the active tab and its bookmarks.
+    val activeTab = tabs.getOrNull(activeTabIndex)
+    val currentBookmarks = activeTab?.let { sessionBookmarksMap[it.sessionId].orEmpty() } ?: emptyList()
     val promptPinningTickerEnabled by viewModel.promptPinningTickerEnabled.collectAsState()
     val safeMultiLinePasteEnabled by viewModel.safeMultiLinePasteEnabled.collectAsState()
     val stickyViewportAnchorEnabled by viewModel.stickyViewportAnchorEnabled.collectAsState()
