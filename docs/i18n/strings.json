@@ -19,7 +19,7 @@
    "strings": [
     {
      "name": "app_name",
-     "en": "Haven",
+     "en": "Haven ARH",
      "comment": "",
      "args": [],
      "t": {
@@ -33092,6 +33092,191 @@
       "ru": "Отмена",
       "zh": "取消"
      }
+    },
+    {
+     "name": "settings_agent_category_title",
+     "en": "Agent &amp; Automation (ARH)",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_macro_bar_title",
+     "en": "Agent fast-approval &amp; macro rail",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_macro_bar_subtitle",
+     "en": "Show 1-tap consent ([Approve (y)], [Reject (n)]) and macro chips above keyboard",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_code_extractor_title",
+     "en": "1-Tap code &amp; diff extraction",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_code_extractor_subtitle",
+     "en": "Scan terminal scrollback for markdown code fences and git diffs",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_hyperlink_routing_title",
+     "en": "Smart URI &amp; file link routing",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_hyperlink_routing_subtitle",
+     "en": "Open file:/// and project links directly in external viewers",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_manage_macros_title",
+     "en": "Configure agent macros",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_manage_macros_subtitle",
+     "en": "Add, edit, reorder, or delete custom agent fast-action buttons",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_macro_dialog_title",
+     "en": "Agent Macros Manager",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_add_macro",
+     "en": "Add Macro",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_edit_macro",
+     "en": "Edit Macro",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_macro_label",
+     "en": "Button Label (e.g. Approve)",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_macro_payload",
+     "en": "Command / Sequence (e.g. y\\\\n)",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_macro_destructive",
+     "en": "Mark as destructive (Red tint)",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_autonomous_mode_title",
+     "en": "Autonomous Agent Mode (Auto-Approve)",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_autonomous_mode_subtitle",
+     "en": "Bypass consent sheets for device agents, and auto-approve tool calls for authenticated paired LAN &amp; Tailscale agents",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_custom_endpoint_title",
+     "en": "Custom Endpoint Host &amp; Port",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_custom_endpoint_subtitle",
+     "en": "Configure Tailscale IP/domain (%1$s) and port (%2$d) for remote agents",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [
+      "%1$s",
+      "%2$d"
+     ],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_custom_endpoint_dialog_title",
+     "en": "Custom MCP Endpoint",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_custom_host_label",
+     "en": "Host / Tailscale IP (e.g. 100.64.0.5 or domain)",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_custom_port_label",
+     "en": "Port (Default: 8730)",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_macro_move_up",
+     "en": "Move up",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_macro_move_down",
+     "en": "Move down",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_macro_edit",
+     "en": "Edit",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "settings_agent_macro_delete",
+     "en": "Delete",
+     "comment": "ARH Agent & Automation (#ARH-PORT)",
+     "args": [],
+     "t": {}
     }
    ]
   },
@@ -40771,6 +40956,299 @@
       "ru": "Это приложение запрашивает мышь. Включите «Мышь в TUI-приложениях» в Настройках → Терминал.",
       "zh": "此应用正在请求鼠标。请在设置 → 终端中开启“TUI 应用中的鼠标输入”。"
      }
+    },
+    {
+     "name": "terminal_workspace_title",
+     "en": "📁 Workspace &amp; Repositories",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_subtitle",
+     "en": "Select a repo to inject agent environment &amp; navigate",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_add_button",
+     "en": "Add Workspace",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_search_placeholder",
+     "en": "Search repositories or paths…",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_search_clear",
+     "en": "Clear search",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_delete_content_desc",
+     "en": "Delete workspace",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_dialog_title",
+     "en": "Add Project Workspace",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_dialog_name_label",
+     "en": "Workspace / Project Name",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_dialog_name_hint",
+     "en": "e.g. Haven Mobile",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_dialog_path_label",
+     "en": "Local Working Directory Path",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_dialog_path_hint",
+     "en": "e.g. ~/repos/Haven or D:/_ARH-AGENT-OS",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_dialog_git_url_label",
+     "en": "Git Remote URL (Optional)",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_dialog_git_url_hint",
+     "en": "e.g. https://github.com/arhsmoque2/Haven.git",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_dialog_branch_label",
+     "en": "Default Branch (Optional)",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_dialog_branch_hint",
+     "en": "e.g. main",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_workspace_dialog_desc_label",
+     "en": "Description (Optional)",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_pinned_prompts_title",
+     "en": "Pinned Prompts &amp; Landmarks (%1$d)",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [
+      "%1$d"
+     ],
+     "t": {}
+    },
+    {
+     "name": "terminal_pinned_prompts_search_placeholder",
+     "en": "Search pinned prompts…",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_pinned_prompts_search_clear",
+     "en": "Clear search",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_pinned_prompts_unpin",
+     "en": "Unpin",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_pinned_prompts_jump",
+     "en": "Jump to context line",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_promptbook_new_prompt",
+     "en": "New Prompt",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_promptbook_search_placeholder",
+     "en": "Search prompt templates…",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_promptbook_delete",
+     "en": "Delete Prompt",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_promptbook_inject_edit",
+     "en": "Inject &amp; Edit",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_promptbook_send_enter",
+     "en": "Send + Enter",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_promptbook_dialog_title",
+     "en": "Create Saved Prompt",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_promptbook_dialog_title_label",
+     "en": "Title (e.g. Code Review)",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_promptbook_dialog_category_label",
+     "en": "Category (e.g. Dev, Git, Agent)",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_promptbook_dialog_content_label",
+     "en": "Prompt Content",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_pinned_ticker_prev",
+     "en": "Previous Prompt Landmark",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_pinned_ticker_next",
+     "en": "Next Prompt Landmark",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_pinned_ticker_open_sheet",
+     "en": "Open Pinned Prompts Sheet",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_macro_workspace_repos",
+     "en": "Workspace Repositories",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_macro_extract_code",
+     "en": "Extract Code Blocks",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_macro_prompt_book",
+     "en": "Prompt Book",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_macro_export_transcript",
+     "en": "Export Transcript Markdown",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_macro_configure",
+     "en": "Configure Macros",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
+    },
+    {
+     "name": "terminal_markdown_saved_to_downloads",
+     "en": "Saved to Downloads: %1$s",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [
+      "%1$s"
+     ],
+     "t": {}
+    },
+    {
+     "name": "terminal_markdown_save_failed",
+     "en": "Failed to save file: %1$s",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [
+      "%1$s"
+     ],
+     "t": {}
+    },
+    {
+     "name": "terminal_code_copied_to_clipboard",
+     "en": "Copied to clipboard",
+     "comment": "ARH Mobile Agent Suite (#ARH-PORT)",
+     "args": [],
+     "t": {}
     }
    ]
   },

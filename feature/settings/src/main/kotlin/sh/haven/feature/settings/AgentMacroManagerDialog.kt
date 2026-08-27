@@ -206,16 +206,16 @@ private fun MacroRowCard(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onMoveUp, enabled = canMoveUp, modifier = Modifier.size(28.dp)) {
-                    Icon(Icons.Default.ArrowUpward, contentDescription = "Move Up", modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.ArrowUpward, contentDescription = stringResource(R.string.settings_agent_macro_move_up), modifier = Modifier.size(16.dp))
                 }
                 IconButton(onClick = onMoveDown, enabled = canMoveDown, modifier = Modifier.size(28.dp)) {
-                    Icon(Icons.Default.ArrowDownward, contentDescription = "Move Down", modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.ArrowDownward, contentDescription = stringResource(R.string.settings_agent_macro_move_down), modifier = Modifier.size(16.dp))
                 }
                 IconButton(onClick = onEdit, modifier = Modifier.size(28.dp)) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.settings_agent_macro_edit), modifier = Modifier.size(16.dp))
                 }
                 IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.settings_agent_macro_delete), tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
                 }
             }
         }

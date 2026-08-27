@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import sh.haven.feature.terminal.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -135,7 +136,7 @@ fun CodeExtractionSheet(
                                 clipboardManager?.setPrimaryClip(
                                     ClipData.newPlainText("code", block.code)
                                 )
-                                Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.terminal_code_copied_to_clipboard), Toast.LENGTH_SHORT).show()
                             }
                         )
                     }

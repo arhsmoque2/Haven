@@ -26,14 +26,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import sh.haven.core.data.preferences.PromptBookmark
+import sh.haven.feature.terminal.R
 
 /**
  * Top Sticky Pinned Prompt Ticker.
@@ -126,7 +126,7 @@ fun PinnedPromptTicker(
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowUp,
-                        contentDescription = "Previous Prompt Landmark",
+                        contentDescription = stringResource(R.string.terminal_pinned_ticker_prev),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp),
                     )
@@ -140,7 +140,7 @@ fun PinnedPromptTicker(
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Next Prompt Landmark",
+                        contentDescription = stringResource(R.string.terminal_pinned_ticker_next),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp),
                     )
@@ -154,7 +154,7 @@ fun PinnedPromptTicker(
                 ) {
                     Icon(
                         imageVector = Icons.Default.ViewList,
-                        contentDescription = "Open Pinned Prompts Sheet",
+                        contentDescription = stringResource(R.string.terminal_pinned_ticker_open_sheet),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp),
                     )

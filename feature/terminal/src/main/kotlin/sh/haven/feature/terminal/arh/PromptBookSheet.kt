@@ -54,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import sh.haven.core.data.preferences.SavedPrompt
+import sh.haven.feature.terminal.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,7 +116,7 @@ fun PromptBookSheet(
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("New Prompt", fontSize = 12.sp)
+                    Text(stringResource(R.string.terminal_promptbook_new_prompt), fontSize = 12.sp)
                 }
             }
 
@@ -125,7 +126,7 @@ fun PromptBookSheet(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Search prompt templates...") },
+                placeholder = { Text(stringResource(R.string.terminal_promptbook_search_placeholder)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -259,7 +260,7 @@ private fun PromptCard(
                 IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete Prompt",
+                        contentDescription = stringResource(R.string.terminal_promptbook_delete),
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(16.dp)
                     )
@@ -272,7 +273,7 @@ private fun PromptCard(
                     ) {
                         Icon(Icons.Default.Input, contentDescription = null, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Inject & Edit", fontSize = 11.sp)
+                        Text(stringResource(R.string.terminal_promptbook_inject_edit), fontSize = 11.sp)
                     }
 
                     FilledTonalButton(
@@ -281,7 +282,7 @@ private fun PromptCard(
                     ) {
                         Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Send + Enter", fontSize = 11.sp)
+                        Text(stringResource(R.string.terminal_promptbook_send_enter), fontSize = 11.sp)
                     }
                 }
             }
@@ -300,7 +301,7 @@ private fun CreatePromptDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Create Saved Prompt") },
+        title = { Text(stringResource(R.string.terminal_promptbook_dialog_title)) },
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -309,7 +310,7 @@ private fun CreatePromptDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Title (e.g. Code Review)") },
+                    label = { Text(stringResource(R.string.terminal_promptbook_dialog_title_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -317,7 +318,7 @@ private fun CreatePromptDialog(
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
-                    label = { Text("Category (e.g. Dev, Git, Agent)") },
+                    label = { Text(stringResource(R.string.terminal_promptbook_dialog_category_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -325,7 +326,7 @@ private fun CreatePromptDialog(
                 OutlinedTextField(
                     value = content,
                     onValueChange = { content = it },
-                    label = { Text("Prompt Content") },
+                    label = { Text(stringResource(R.string.terminal_promptbook_dialog_content_label)) },
                     minLines = 3,
                     maxLines = 6,
                     modifier = Modifier.fillMaxWidth()
@@ -348,12 +349,12 @@ private fun CreatePromptDialog(
                 },
                 enabled = title.isNotBlank() && content.isNotBlank()
             ) {
-                Text("Save")
+                Text(stringResource(R.string.common_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )

@@ -49,10 +49,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import sh.haven.core.data.preferences.WorkspaceRepo
+import sh.haven.feature.terminal.R
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,7 +96,7 @@ fun WorkspaceRepoSelectorSheet(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Workspace")
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.terminal_workspace_add_button))
                 }
             },
         ) { padding ->
@@ -113,18 +114,18 @@ fun WorkspaceRepoSelectorSheet(
                 ) {
                     Column {
                         Text(
-                            text = "📁 Workspace & Repositories",
+                            text = stringResource(R.string.terminal_workspace_title),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            text = "Select a repo to inject agent environment & navigate",
+                            text = stringResource(R.string.terminal_workspace_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     IconButton(onClick = onDismissRequest) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close))
                     }
                 }
 
@@ -135,12 +136,12 @@ fun WorkspaceRepoSelectorSheet(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Search repositories or paths...") },
+                    placeholder = { Text(stringResource(R.string.terminal_workspace_search_placeholder)) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { searchQuery = "" }) {
-                                Icon(Icons.Default.Close, contentDescription = "Clear search")
+                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.terminal_workspace_search_clear))
                             }
                         }
                     },
@@ -304,7 +305,7 @@ private fun WorkspaceRepoCard(
             IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Default.Delete,
-                    contentDescription = "Delete workspace",
+                    contentDescription = stringResource(R.string.terminal_workspace_delete_content_desc),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     modifier = Modifier.size(20.dp),
                 )
@@ -326,44 +327,45 @@ private fun AddWorkspaceDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Project Workspace") },
+        title = { Text(stringResource(R.string.terminal_workspace_dialog_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Workspace / Project Name") },
-                    placeholder = { Text("e.g. Haven Mobile") },
+                    label = { Text(stringResource(R.string.terminal_workspace_dialog_name_label)) },
+                    placeholder = { Text(stringResource(R.string.terminal_workspace_dialog_name_hint)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
                     value = localPath,
                     onValueChange = { localPath = it },
-                    label = { Text("Local Working Directory Path") },
-                    placeholder = { Text("e.g. ~/repos/Haven or D:/_ARH-AGENT-OS") },
+                    label = { Text(stringResource(R.string.terminal_workspace_dialog_path_label)) },
+                    placeholder = { Text(stringResource(R.string.terminal_workspace_dialog_path_hint)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
                     value = gitUrl,
                     onValueChange = { gitUrl = it },
-                    label = { Text("Git Remote URL (Optional)") },
-                    placeholder = { Text("e.g. https://github.com/arhsmoque2/Haven.git") },
+                    label = { Text(stringResource(R.string.terminal_workspace_dialog_git_url_label)) },
+                    placeholder = { Text(stringResource(R.string.terminal_workspace_dialog_git_url_hint)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
                     value = branch,
                     onValueChange = { branch = it },
-                    label = { Text("Default Branch (Optional)") },
+                    label = { Text(stringResource(R.string.terminal_workspace_dialog_branch_label)) },
+                    placeholder = { Text(stringResource(R.string.terminal_workspace_dialog_branch_hint)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Description (Optional)") },
+                    label = { Text(stringResource(R.string.terminal_workspace_dialog_desc_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -387,12 +389,12 @@ private fun AddWorkspaceDialog(
                 },
                 enabled = name.isNotBlank() && localPath.isNotBlank(),
             ) {
-                Text("Add")
+                Text(stringResource(R.string.common_add))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.common_cancel))
             }
         },
     )

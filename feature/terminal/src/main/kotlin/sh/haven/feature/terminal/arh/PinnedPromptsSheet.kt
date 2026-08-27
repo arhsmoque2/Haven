@@ -39,7 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import sh.haven.core.data.preferences.PromptBookmark
+import sh.haven.feature.terminal.R
 
 /**
  * Pinned Prompts & Landmarks Bottom Sheet.
@@ -101,13 +102,13 @@ fun PinnedPromptsSheet(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Pinned Prompts & Landmarks (${bookmarks.size})",
+                        text = stringResource(R.string.terminal_pinned_prompts_title, bookmarks.size),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
                 }
                 IconButton(onClick = onDismissRequest) {
-                    Icon(Icons.Default.Close, contentDescription = "Close")
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close))
                 }
             }
 
@@ -118,12 +119,12 @@ fun PinnedPromptsSheet(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search pinned prompts...") },
+                placeholder = { Text(stringResource(R.string.terminal_pinned_prompts_search_placeholder)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
                         IconButton(onClick = { searchQuery = "" }) {
-                            Icon(Icons.Default.Close, contentDescription = "Clear search")
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.terminal_pinned_prompts_search_clear))
                         }
                     }
                 },
@@ -246,7 +247,7 @@ private fun StreamStyleBookmarkCard(
                 IconButton(onClick = onDelete) {
                     Icon(
                         Icons.Default.Delete,
-                        contentDescription = "Unpin",
+                        contentDescription = stringResource(R.string.terminal_pinned_prompts_unpin),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         modifier = Modifier.size(18.dp),
                     )
@@ -255,7 +256,7 @@ private fun StreamStyleBookmarkCard(
                 IconButton(onClick = onClick) {
                     Icon(
                         Icons.Default.NorthEast,
-                        contentDescription = "Jump to context line",
+                        contentDescription = stringResource(R.string.terminal_pinned_prompts_jump),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp),
                     )

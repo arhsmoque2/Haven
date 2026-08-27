@@ -32,11 +32,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import sh.haven.core.data.preferences.AgentMacro
+import sh.haven.feature.terminal.R
 
 /**
  * Quick-action rail rendering 1-tap agent approvals, code extraction, prompt templates,
@@ -79,7 +81,7 @@ fun AgentMacroBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Source,
-                        contentDescription = "Workspace Repositories",
+                        contentDescription = stringResource(R.string.terminal_macro_workspace_repos),
                         tint = Color(0xFFA78BFA),
                         modifier = Modifier.size(18.dp)
                     )
@@ -95,7 +97,7 @@ fun AgentMacroBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.DataObject,
-                    contentDescription = "Extract Code Blocks",
+                    contentDescription = stringResource(R.string.terminal_macro_extract_code),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp)
                 )
@@ -110,7 +112,7 @@ fun AgentMacroBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.MenuBook,
-                    contentDescription = "Prompt Book",
+                    contentDescription = stringResource(R.string.terminal_macro_prompt_book),
                     tint = Color(0xFF38BDF8),
                     modifier = Modifier.size(18.dp)
                 )
@@ -125,7 +127,7 @@ fun AgentMacroBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Download,
-                    contentDescription = "Export Transcript Markdown",
+                    contentDescription = stringResource(R.string.terminal_macro_export_transcript),
                     tint = Color(0xFFFBBF24),
                     modifier = Modifier.size(18.dp)
                 )
@@ -195,7 +197,7 @@ fun AgentMacroBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Settings,
-                        contentDescription = "Configure Macros",
+                        contentDescription = stringResource(R.string.terminal_macro_configure),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )

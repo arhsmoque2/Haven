@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
+import sh.haven.feature.terminal.R
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -96,18 +97,18 @@ object TerminalMarkdownExporter {
                     resolver.openOutputStream(uri)?.use { stream ->
                         stream.write(markdown.toByteArray(Charsets.UTF_8))
                     }
-                    Toast.makeText(context, "Saved to Downloads: $fileName", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.terminal_markdown_saved_to_downloads, fileName), Toast.LENGTH_LONG).show()
                 }
                 uri
             } else {
                 val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                 val targetFile = File(downloadsDir, fileName)
                 targetFile.writeText(markdown, Charsets.UTF_8)
-                Toast.makeText(context, "Saved to Downloads: $fileName", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.terminal_markdown_saved_to_downloads, fileName), Toast.LENGTH_LONG).show()
                 Uri.fromFile(targetFile)
             }
         } catch (e: Exception) {
-            Toast.makeText(context, "Failed to save file: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.terminal_markdown_save_failed, e.message ?: ""), Toast.LENGTH_LONG).show()
             null
         }
     }
