@@ -359,8 +359,10 @@ fun TerminalScreen(
     val agentMacros by viewModel.agentMacros.collectAsState()
     val agentCodeExtractorEnabled by viewModel.agentCodeExtractorEnabled.collectAsState()
     val agentSavedPrompts by viewModel.agentSavedPrompts.collectAsState()
+    val agentSavedWorkspaces by viewModel.agentSavedWorkspaces.collectAsState()
     var showCodeExtractionSheet by remember { mutableStateOf(false) }
     var showPromptBookSheet by remember { mutableStateOf(false) }
+    var showWorkspaceRepoSheet by remember { mutableStateOf(false) }
     var extractedBlocks by remember { mutableStateOf<List<ExtractedCodeBlock>>(emptyList()) }
 
     val context = LocalContext.current
@@ -1828,6 +1830,9 @@ fun TerminalScreen(
                                 )
                                 TerminalMarkdownExporter.shareMarkdown(context, activeTab.title, md)
                             },
+                            onOpenRepoSelector = {
+                                showWorkspaceRepoSheet = true
+                            },
                             onOpenSettings = onOpenToolbarSettings
                         )
                     }
@@ -2004,6 +2009,18 @@ fun TerminalScreen(
             onAddPrompt = { newPrompt -> viewModel.addAgentPrompt(newPrompt) },
             onDeletePrompt = { index -> viewModel.deleteAgentPrompt(index) },
             onDismiss = { showPromptBookSheet = false }
+        )
+    }
+
+    if (showWorkspaceRepoSheet) {
+        sh.haven.feature.terminal.arh.WorkspaceRepoSelectorSheet(
+            repos = agentSavedWorkspaces,
+            onDismissRequest = { showWorkspaceRepoSheet = false },
+            onSelectRepo = { repo ->
+                val cmd = "export HAVEN_TARGET_REPO=\"${repo.name}\" HAVEN_WORKSPACE_PATH=\"${repo.localPath}\" HAVEN_GIT_BRANCH=\"${repo.branch}\"; cd \"${repo.localPath}\" && echo \"=== [Haven Agent Bridge] Target Repo: ${repo.name} (${'$'}PWD) ===\"\n"
+                activeTab?.sendInput(cmd.toByteArray(Charsets.UTF_8))
+            },
+            onSaveRepos = { updated -> viewModel.saveAgentWorkspaces(updated) }
         )
     }
 }

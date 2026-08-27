@@ -48,6 +48,7 @@ fun AgentMacroBar(
     onOpenCodeExtractor: () -> Unit,
     onOpenPromptBook: () -> Unit,
     onExportTranscriptMarkdown: () -> Unit,
+    onOpenRepoSelector: (() -> Unit)? = null,
     onOpenSettings: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -66,6 +67,21 @@ fun AgentMacroBar(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Quick 1-Tap Workspace Repo Picker Trigger
+            if (onOpenRepoSelector != null) {
+                IconButton(
+                    onClick = onOpenRepoSelector,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Source,
+                        contentDescription = "Workspace Repositories",
+                        tint = Color(0xFFA78BFA),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
             // Quick 1-Tap Code Extractor Trigger
             IconButton(
                 onClick = onOpenCodeExtractor,

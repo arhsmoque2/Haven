@@ -641,6 +641,25 @@ class TerminalViewModel @Inject constructor(
         }
     }
 
+    val agentSavedWorkspaces: StateFlow<List<sh.haven.core.data.preferences.WorkspaceRepo>> =
+        preferencesRepository.agentSavedWorkspaces
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), sh.haven.core.data.preferences.WorkspaceRepo.DEFAULT_REPOS)
+
+    fun saveAgentWorkspaces(repos: List<sh.haven.core.data.preferences.WorkspaceRepo>) {
+        viewModelScope.launch { preferencesRepository.setAgentSavedWorkspaces(repos) }
+    }
+
+    fun addAgentWorkspace(repo: sh.haven.core.data.preferences.WorkspaceRepo) {
+        val current = agentSavedWorkspaces.value.toMutableList()
+        current.add(repo)
+        saveAgentWorkspaces(current)
+    }
+
+    fun deleteAgentWorkspace(id: String) {
+        val current = agentSavedWorkspaces.value.filterNot { it.id == id }
+        saveAgentWorkspaces(current)
+    }
+
     /**
      * Scrollback ring size for newly created emulators (#151). Read at
      * construction by [TerminalEmulatorFactory.create]; existing tabs keep

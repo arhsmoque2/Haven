@@ -90,6 +90,11 @@ import androidx.compose.ui.platform.LocalTextToolbar
 import androidx.compose.ui.platform.TextToolbar
 import androidx.compose.ui.platform.TextToolbarStatus
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
@@ -374,6 +379,7 @@ internal fun FloatingTextInputDialog(
     var windowHeightPx by remember { mutableFloatStateOf(screenHeightPx * savedHeight) }
 
     val textFieldFocusRequester = remember { FocusRequester() }
+    var lastEscTime by remember { mutableStateOf(0L) }
 
     // Custom selection toolbar (Copy/Cut/Paste/Select all) — the platform
     // ActionMode one never shows inside this focusable Popup. TWO hooks are
@@ -554,7 +560,20 @@ internal fun FloatingTextInputDialog(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
-                                .focusRequester(textFieldFocusRequester),
+                                .focusRequester(textFieldFocusRequester)
+                                .onKeyEvent { keyEvent ->
+                                    if (keyEvent.type == KeyEventType.KeyDown && keyEvent.key == Key.Escape) {
+                                        val now = System.currentTimeMillis()
+                                        if (now - lastEscTime < 400L) {
+                                            onTextChange("")
+                                            lastEscTime = 0L
+                                            true
+                                        } else {
+                                            lastEscTime = now
+                                            false
+                                        }
+                                    } else false
+                                },
                         )
                     }
 

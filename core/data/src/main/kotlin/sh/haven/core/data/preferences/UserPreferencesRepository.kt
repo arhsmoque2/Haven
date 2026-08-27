@@ -335,6 +335,26 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    // --- Saved Workspace Repositories ---
+    private val agentSavedWorkspacesKey = stringPreferencesKey("agent_saved_workspaces")
+
+    val agentSavedWorkspaces: Flow<List<WorkspaceRepo>> = dataStore.data.map { prefs ->
+        val raw = prefs[agentSavedWorkspacesKey] ?: ""
+        WorkspaceRepo.listFromJson(raw)
+    }
+
+    suspend fun setAgentSavedWorkspaces(repos: List<WorkspaceRepo>) {
+        dataStore.edit { prefs ->
+            prefs[agentSavedWorkspacesKey] = WorkspaceRepo.listToJson(repos)
+        }
+    }
+
+    suspend fun resetAgentSavedWorkspaces() {
+        dataStore.edit { prefs ->
+            prefs[agentSavedWorkspacesKey] = WorkspaceRepo.listToJson(WorkspaceRepo.DEFAULT_REPOS)
+        }
+    }
+
     val biometricEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[biometricEnabledKey] ?: false
     }
