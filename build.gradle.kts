@@ -5,6 +5,21 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.ksp) apply false
+    id("com.diffplug.spotless") version "6.25.0"
+}
+
+spotless {
+    kotlin {
+        target("**/*.kt")
+        targetExclude("**/build/**", "**/generated/**", "**/.gradle/**")
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    kotlinGradle {
+        target("**/*.gradle.kts")
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 // Library modules that don't define the "store" dimension need a default

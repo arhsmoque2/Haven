@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'feat/*', 'feat/**' ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, 'feat/*', 'feat/**' ]
   # Nightly broad net: full lint, the R8 smoke, and an all-ABI build — the
   # slow/low-per-commit-signal work pulled off every main push (below) still
   # runs within 24h, so a lint regression or an x64/armv7-specific breakage
@@ -279,6 +279,8 @@ jobs:
         run: |
           python3 scripts/i18n_export.py
           git diff --exit-code docs/i18n/strings.json
+      - name: Run ARH As-Built Conformance Doctor
+        run: python3 scripts/ci_asbuilt_doctor.py
 
   # Full Android lint is slow (~13 min) and rarely catches a per-commit
   # regression the tests don't — so it runs on PRs and the nightly schedule,
@@ -327,11 +329,13 @@ jobs:
       # Build arm64 only in CI — the x64 flavor exists for emulator support
       # and Play Store fat distribution, not smoke-testing main. Cuts build
       # work roughly in half vs :app:assembleDebug (which expands to both).
-      - name: Build arm64 debug APK
+      - name: Build arm64 debug APKs (Full & Lean Terminal)
         # -PtargetAbi drives core/wayland's buildWaylandNatives, which builds the
         # five arm64-only wayland binaries from the submodule instead of shipping
         # committed copies. This job is what proves they still compile (#493).
-        run: ./gradlew :app:assembleArm64FullDebug -PtargetAbi=arm64
+        run: |
+          ./gradlew :app:assembleArm64FullDebug -PtargetAbi=arm64
+          ./gradlew :app:assembleArm64TerminalDebug -PtargetAbi=arm64
       # Runs here rather than in `checks` because it reads the built binaries,
       # and nothing builds them there. #469 was a wayland library linked without
       # gen-stubs.sh's weak stubs: 51 undefined symbols, dlopen refused it, and
@@ -340,12 +344,14 @@ jobs:
       # case impossible — only unobservable until someone runs it.
       - name: Assert native libs resolve their stubs (#469)
         run: ./scripts/check-native-libs.sh
-      - name: Upload debug APK
+      - name: Upload debug APKs
         if: success()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: app-debug
-          path: app/build/outputs/apk/arm64Full/debug/haven-*-arm64-debug.apk
+          path: |
+            app/build/outputs/apk/arm64Full/debug/haven-*-arm64-debug.apk
+            app/build/outputs/apk/arm64Terminal/debug/haven-*-arm64-debug.apk
           retention-days: 7
 
   # Nightly-only: build the ABIs the per-push `build` job skips (x64, armv7)
