@@ -208,7 +208,11 @@ internal fun shouldShowMouseHint(
     alreadyShown: Boolean,
 ): Boolean = appRequestedMouse && !preferenceEnabled && !alreadyShown
 
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
+@OptIn(
+    androidx.compose.foundation.layout.ExperimentalLayoutApi::class,
+    ExperimentalFoundationApi::class,
+    androidx.compose.material3.ExperimentalMaterial3Api::class,
+)
 @Composable
 fun TerminalScreen(
     navigateToProfileId: String? = null,
@@ -1821,7 +1825,7 @@ fun TerminalScreen(
                         }
 
                         // Live Stream Floating Jump Pill (ADR-003)
-                        val scrollCtrl = activeTab?.sessionId?.let { viewModel.terminalSessionRegistry.entry(it)?.scrollController }
+                        val scrollCtrl = activeTab?.sessionId?.let { viewModel.terminalSessionRegistry.get(it)?.scrollController }
                         val scrollbackPos = scrollCtrl?.scrollbackPosition ?: 0
                         sh.haven.feature.terminal.arh.LiveStreamJumpPill(
                             visible = sh.haven.feature.terminal.arh.LiveStreamAnchorGuard.shouldShowPill(stickyViewportAnchorEnabled, scrollbackPos),
@@ -1846,7 +1850,7 @@ fun TerminalScreen(
                                 currentBookmarkIndex = sh.haven.feature.terminal.arh.PromptBookmarkNavigator.previousIndex(currentBookmarkIndex)
                                 val b = currentBookmarks.getOrNull(currentBookmarkIndex)
                                 if (b != null) {
-                                    val scrollCtrl = viewModel.terminalSessionRegistry.entry(activeTab.sessionId)?.scrollController
+                                    val scrollCtrl = viewModel.terminalSessionRegistry.get(activeTab.sessionId)?.scrollController
                                     scrollCtrl?.scrollToTop()
                                     if (b.lineIndex > 0) scrollCtrl?.scrollBy(-b.lineIndex)
                                 }
@@ -1855,7 +1859,7 @@ fun TerminalScreen(
                                 currentBookmarkIndex = sh.haven.feature.terminal.arh.PromptBookmarkNavigator.nextIndex(currentBookmarkIndex, currentBookmarks.size)
                                 val b = currentBookmarks.getOrNull(currentBookmarkIndex)
                                 if (b != null) {
-                                    val scrollCtrl = viewModel.terminalSessionRegistry.entry(activeTab.sessionId)?.scrollController
+                                    val scrollCtrl = viewModel.terminalSessionRegistry.get(activeTab.sessionId)?.scrollController
                                     scrollCtrl?.scrollToTop()
                                     if (b.lineIndex > 0) scrollCtrl?.scrollBy(-b.lineIndex)
                                 }
@@ -1880,13 +1884,13 @@ fun TerminalScreen(
                                 showPromptBookSheet = true
                             },
                             onExportTranscriptMarkdown = {
-                                val lines = activeTab.emulator?.getSnapshotLineTexts() ?: emptyList()
+                                val lines = activeTab.emulator.getSnapshotLineTexts()
                                 val md = TerminalMarkdownExporter.generateMarkdown(
-                                    sessionTitle = activeTab.title,
-                                    host = (activeTab as? SshTerminalTab)?.profile?.host,
+                                    sessionTitle = activeTab.label,
+                                    host = activeTab.profileId,
                                     lines = lines
                                 )
-                                TerminalMarkdownExporter.shareMarkdown(context, activeTab.title, md)
+                                TerminalMarkdownExporter.shareMarkdown(context, activeTab.label, md)
                             },
                             onOpenRepoSelector = {
                                 showWorkspaceRepoSheet = true
@@ -2093,7 +2097,7 @@ fun TerminalScreen(
             bookmarks = currentBookmarks,
             onDismissRequest = { showPinnedPromptsSheet = false },
             onJumpToBookmark = { bookmark ->
-                val scrollCtrl = viewModel.terminalSessionRegistry.entry(activeTab.sessionId)?.scrollController
+                val scrollCtrl = viewModel.terminalSessionRegistry.get(activeTab.sessionId)?.scrollController
                 scrollCtrl?.scrollToTop()
                 if (bookmark.lineIndex > 0) scrollCtrl?.scrollBy(-bookmark.lineIndex)
                 currentBookmarkIndex = currentBookmarks.indexOfFirst { it.id == bookmark.id }.coerceAtLeast(0)
