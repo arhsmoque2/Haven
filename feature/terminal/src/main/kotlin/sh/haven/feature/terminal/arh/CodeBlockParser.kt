@@ -13,7 +13,11 @@ data class ExtractedCodeBlock(
 
 object CodeBlockParser {
     private val CODE_FENCE_REGEX = Regex("```([a-zA-Z0-9_#-]*)\\s*\\n([\\s\\S]*?)```")
-    private val DIFF_HEADER_REGEX = Regex("(?:^|\\n)(diff --git a/.*?\\n(?:---|\\+\\+\\+|@@)[\\s\\S]*?)(?=\\n(?:diff --git|$))")
+    // The lookahead terminates a diff block either where the next one starts
+    // or at end of input — as its own alternative, not "\n" then end, since a
+    // diff sitting at the very end of the buffer (the common case: terminal
+    // scrollback rarely has a trailing blank line) has no newline to anchor on.
+    private val DIFF_HEADER_REGEX = Regex("(?:^|\\n)(diff --git a/.*?\\n(?:---|\\+\\+\\+|@@)[\\s\\S]*?)(?=\\n(?:diff --git)|$)")
 
     /**
      * Extracts all markdown code fences and git diff sections from [bufferText].
