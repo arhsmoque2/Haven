@@ -1,0 +1,35 @@
+[project]
+name = "haven-devtooling"
+version = "0.1.0"
+description = "Haven Android Terminal Python Quality Gate & CI Suite"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9.0",
+    "pytest>=8.0.0",
+    "pytest-timeout>=2.3.0",
+    "pyright>=1.1.390",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["scripts"]
+extend-exclude = [
+    ".agents",
+    ".git",
+    ".gradle",
+    "build",
+    "**/build",
+    "**/node_modules",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["scripts/tests"]
+timeout = 30

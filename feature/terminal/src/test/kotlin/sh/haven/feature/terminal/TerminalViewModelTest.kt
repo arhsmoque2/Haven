@@ -340,4 +340,34 @@ class TerminalViewModelTest {
         assertEquals("the locked Alt is not", true, viewModel.altActive.value)
         assertEquals(2, viewModel.toolbarModifierMask())
     }
+
+    @Test
+    fun `adding and deleting prompt bookmarks updates sessionBookmarks flow correctly`() {
+        val sessionId = "session-123"
+        assertEquals(0, viewModel.sessionBookmarks.value[sessionId]?.size ?: 0)
+
+        viewModel.addPromptBookmark(sessionId, 42, "find haven github repo")
+        val bookmarks = viewModel.sessionBookmarks.value[sessionId]
+        assertEquals(1, bookmarks?.size)
+        assertEquals(42, bookmarks?.first()?.lineIndex)
+        assertEquals("find haven github repo", bookmarks?.first()?.promptText)
+
+        val bookmarkId = bookmarks?.first()?.id ?: ""
+        viewModel.deletePromptBookmark(sessionId, bookmarkId)
+        assertEquals(0, viewModel.sessionBookmarks.value[sessionId]?.size ?: 0)
+    }
+
+    @Test
+    fun `adding multiple prompt bookmarks maintains insertion order per session`() {
+        val sessionId = "session-456"
+        viewModel.addPromptBookmark(sessionId, 10, "prompt 1")
+        viewModel.addPromptBookmark(sessionId, 50, "prompt 2")
+        viewModel.addPromptBookmark(sessionId, 120, "prompt 3")
+
+        val bookmarks = viewModel.sessionBookmarks.value[sessionId]
+        assertEquals(3, bookmarks?.size)
+        assertEquals("prompt 1", bookmarks?.get(0)?.promptText)
+        assertEquals("prompt 2", bookmarks?.get(1)?.promptText)
+        assertEquals("prompt 3", bookmarks?.get(2)?.promptText)
+    }
 }

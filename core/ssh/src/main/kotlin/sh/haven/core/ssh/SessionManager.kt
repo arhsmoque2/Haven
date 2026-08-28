@@ -22,6 +22,12 @@ enum class SessionManager(
         { name -> "sh -c 'tmux kill-session -t $name'" },
         { old, new -> "sh -c 'tmux rename-session -t $old $new'" },
     ),
+    PSMUX("psmux",
+        { name -> "exec sh -c 'if ! command -v psmux >/dev/null 2>&1; then echo \"Haven: psmux not found. Install it or ensure it is in PATH.\"; else exec psmux attach -t $name --create; fi'" },
+        "sh -c 'psmux ls 2>/dev/null'",
+        { name -> "sh -c 'psmux kill -t $name'" },
+        { old, new -> "sh -c 'psmux rename -t $old $new'" },
+    ),
     ZELLIJ("zellij",
         { name -> "exec sh -c 'if ! command -v zellij >/dev/null 2>&1; then echo \"Haven: zellij not found. See https://zellij.dev/documentation/installation or change session manager in connection settings.\"; else exec zellij attach $name --create; fi'" },
         "sh -c 'zellij ls 2>/dev/null'",
@@ -65,6 +71,11 @@ enum class SessionManager(
             return when (manager) {
                 NONE -> emptyList()
                 TMUX, BYOBU -> clean.lines().filter { it.isNotBlank() }
+                PSMUX -> clean.lines()
+                    .map { it.trim() }
+                    .filter { it.isNotBlank() && !it.startsWith("No ") }
+                    .map { it.split(Regex("[:\\s]")).first() }
+                    .filter { it.isNotBlank() }
                 ZELLIJ -> clean.lines()
                     .filter { it.isNotBlank() && !it.contains("EXITED") }
                     .map { it.trim().split(Regex("\\s+")).first() }

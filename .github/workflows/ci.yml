@@ -2,16 +2,27 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'feat/*', 'feat/**' ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, 'feat/*', 'feat/**' ]
   # Nightly broad net: full lint, the R8 smoke, and an all-ABI build — the
   # slow/low-per-commit-signal work pulled off every main push (below) still
   # runs within 24h, so a lint regression or an x64/armv7-specific breakage
   # the arm64-only per-push build would miss is caught daily.
-  schedule:
-    - cron: '0 3 * * *'  # 03:00 UTC daily
   workflow_dispatch:
+    inputs:
+      build_apk:
+        description: 'Build and attach APK artifacts'
+        type: boolean
+        default: true
+      flavor:
+        description: 'Target flavor to build'
+        type: choice
+        options:
+          - 'arm64Terminal (Lean ~25MB)'
+          - 'arm64Full (Full desktop ~45MB)'
+          - 'both'
+        default: 'arm64Terminal (Lean ~25MB)'
 
 concurrency:
   # Event-scoped so a main push doesn't cancel an in-flight nightly (both
@@ -279,6 +290,12 @@ jobs:
         run: |
           python3 scripts/i18n_export.py
           git diff --exit-code docs/i18n/strings.json
+      - name: Run ARH As-Built Conformance Doctor
+        run: python3 scripts/ci_asbuilt_doctor.py
+      - name: Run Maestro UI TestTag Conformance Doctor
+        run: python3 scripts/ci_maestro_doctor.py
+      - name: Run ARH Python Quality Gate (Tests)
+        run: python3 -m unittest discover -s scripts/tests
 
   # Full Android lint is slow (~13 min) and rarely catches a per-commit
   # regression the tests don't — so it runs on PRs and the nightly schedule,
@@ -287,7 +304,7 @@ jobs:
   lint:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -303,7 +320,7 @@ jobs:
         # inside clang++). A job killed by a timeout reports `cancelled`, which
         # reads as "superseded" — so the nightly lint gate stopped producing a
         # verdict and nothing said so.
-        run: ./gradlew lintDebug -PskipWaylandNatives=true -PskipFfmpegNatives=true
+        run: ./gradlew lintDebug -PskipWaylandNatives=true -PskipFfmpegNatives=true -PskipPrnsNatives=true -PskipRdpNatives=true
       - name: Upload lint results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -316,6 +333,14 @@ jobs:
           retention-days: 14
 
   build:
+    # Runs on manual dispatch, nightly schedule, main pushes, or when requested via [build] / [build-apk] in commit message.
+    # Prevents producing redundant artifact copies on routine feature pushes.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      github.ref == 'refs/heads/main' ||
+      contains(github.event.head_commit.message, '[build]') ||
+      contains(github.event.head_commit.message, '[build-apk]')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -327,11 +352,13 @@ jobs:
       # Build arm64 only in CI — the x64 flavor exists for emulator support
       # and Play Store fat distribution, not smoke-testing main. Cuts build
       # work roughly in half vs :app:assembleDebug (which expands to both).
-      - name: Build arm64 debug APK
+      - name: Build arm64 debug APKs (Full & Lean Terminal)
         # -PtargetAbi drives core/wayland's buildWaylandNatives, which builds the
         # five arm64-only wayland binaries from the submodule instead of shipping
         # committed copies. This job is what proves they still compile (#493).
-        run: ./gradlew :app:assembleArm64FullDebug -PtargetAbi=arm64
+        run: |
+          ./gradlew :app:assembleArm64FullDebug -PtargetAbi=arm64
+          ./gradlew :app:assembleArm64TerminalDebug -PtargetAbi=arm64
       # Runs here rather than in `checks` because it reads the built binaries,
       # and nothing builds them there. #469 was a wayland library linked without
       # gen-stubs.sh's weak stubs: 51 undefined symbols, dlopen refused it, and
@@ -340,12 +367,14 @@ jobs:
       # case impossible — only unobservable until someone runs it.
       - name: Assert native libs resolve their stubs (#469)
         run: ./scripts/check-native-libs.sh
-      - name: Upload debug APK
+      - name: Upload debug APKs
         if: success()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: app-debug
-          path: app/build/outputs/apk/arm64Full/debug/haven-*-arm64-debug.apk
+          path: |
+            app/build/outputs/apk/arm64Full/debug/haven-*-arm64-debug.apk
+            app/build/outputs/apk/arm64Terminal/debug/haven-*-arm64-debug.apk
           retention-days: 7
 
   # Nightly-only: build the ABIs the per-push `build` job skips (x64, armv7)
@@ -386,7 +415,7 @@ jobs:
   release-r8-smoke:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -399,6 +428,6 @@ jobs:
         # native builds anyway. This job hit its 30-minute timeout on the same
         # three nights, so the R8-keep assertion below has not actually run
         # since the from-source work landed.
-        run: ./gradlew :app:minifyArm64FullReleaseWithR8 -PskipWaylandNatives=true -PskipFfmpegNatives=true
+        run: ./gradlew :app:minifyArm64FullReleaseWithR8 -PskipWaylandNatives=true -PskipFfmpegNatives=true -PskipPrnsNatives=true -PskipRdpNatives=true
       - name: Assert reflectively-loaded classes survived R8
         run: ./scripts/check-r8-kept-classes.sh

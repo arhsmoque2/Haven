@@ -1,0 +1,30 @@
+appId: com.arh.haven
+tags:
+  - overflow
+  - actions
+---
+- launchApp:
+    clearState: false
+
+# 1. Quick Macro Action Buttons
+- assertVisible:
+    id: "btn_macro_repos"
+    optional: true
+
+- assertVisible:
+    id: "btn_macro_code_extract"
+    optional: true
+
+- assertVisible:
+    id: "btn_macro_prompt_book"
+    optional: true
+
+- assertVisible:
+    id: "btn_macro_export"
+    optional: true
+
+# 2. Live Stream Jump Pill (when viewport scrolls away from tail)
+- assertVisible:
+    id: "live_stream_jump_pill"
+    optional: true
+

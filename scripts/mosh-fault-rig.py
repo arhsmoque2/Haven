@@ -26,6 +26,7 @@ Usage:
 Control is a tiny file the relay polls, so the toggles work from any shell
 (or over SSH from a test script) without signals or a control socket.
 """
+
 import os
 import selectors
 import socket
@@ -34,10 +35,10 @@ import sys
 import time
 
 STATE_DIR = os.environ.get("MOSH_RIG_DIR", "/tmp/mosh-fault-rig")
-MODE_FILE = os.path.join(STATE_DIR, "mode")       # "pass" | "blackhole"
-INFO_FILE = os.path.join(STATE_DIR, "info")       # human-readable connect info
+MODE_FILE = os.path.join(STATE_DIR, "mode")  # "pass" | "blackhole"
+INFO_FILE = os.path.join(STATE_DIR, "info")  # human-readable connect info
 PID_FILE = os.path.join(STATE_DIR, "relay.pid")
-LOG_FILE = os.path.join(STATE_DIR, "relay.log")   # forwarded/dropped counters
+LOG_FILE = os.path.join(STATE_DIR, "relay.log")  # forwarded/dropped counters
 RELAY_PORT = int(os.environ.get("MOSH_RIG_PORT", "60999"))
 
 
@@ -204,10 +205,7 @@ def bootstrap() -> int:
         if rc != 0:
             return rc
     with open(INFO_FILE) as f:
-        info = dict(
-            (k.strip(), v.strip())
-            for k, v in (ln.split(":", 1) for ln in f if ":" in ln)
-        )
+        info = dict((k.strip(), v.strip()) for k, v in (ln.split(":", 1) for ln in f if ":" in ln))
     print(f"MOSH CONNECT {RELAY_PORT} {info['MOSH_KEY']}")
     return 0
 

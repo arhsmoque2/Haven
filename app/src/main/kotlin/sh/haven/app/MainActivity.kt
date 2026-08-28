@@ -29,6 +29,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -516,100 +518,109 @@ class MainActivity : AppCompatActivity() {
             }
 
             HavenTheme(darkTheme = darkTheme) {
-                val biometricEnabled by preferencesRepository.biometricEnabled
-                    .collectAsState(initial = false)
-                val lockTimeout by preferencesRepository.lockTimeout
-                    .collectAsState(initial = sh.haven.core.data.preferences.UserPreferencesRepository.LockTimeout.IMMEDIATE)
-                var unlocked by remember { mutableStateOf(false) }
-                var backgroundedAt by remember { mutableStateOf(0L) }
-
-                // Re-lock when app goes to background, respecting timeout.
-                // Minimum 5s grace period so file pickers, permission dialogs,
-                // and other brief system activities don't trigger re-lock.
-                val lifecycleOwner = LocalLifecycleOwner.current
-                DisposableEffect(lifecycleOwner) {
-                    val observer = LifecycleEventObserver { _, event ->
-                        // Don't arm the re-lock when we stop because we entered
-                        // PiP — the app window is still floating, and re-locking
-                        // would slam the lock screen over it on expand.
-                        if (event == Lifecycle.Event.ON_STOP && !pipController.isInPip.value) {
-                            backgroundedAt = System.currentTimeMillis()
+                @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .semantics {
+                            testTagsAsResourceId = true
                         }
-                        if (event == Lifecycle.Event.ON_START && unlocked && backgroundedAt > 0) {
-                            val elapsed = (System.currentTimeMillis() - backgroundedAt) / 1000
-                            val effectiveTimeout = maxOf(lockTimeout.seconds, 5L)
-                            if (elapsed >= effectiveTimeout) {
-                                unlocked = false
+                ) {
+                    val biometricEnabled by preferencesRepository.biometricEnabled
+                        .collectAsState(initial = false)
+                    val lockTimeout by preferencesRepository.lockTimeout
+                        .collectAsState(initial = sh.haven.core.data.preferences.UserPreferencesRepository.LockTimeout.IMMEDIATE)
+                    var unlocked by remember { mutableStateOf(false) }
+                    var backgroundedAt by remember { mutableStateOf(0L) }
+
+                    // Re-lock when app goes to background, respecting timeout.
+                    // Minimum 5s grace period so file pickers, permission dialogs,
+                    // and other brief system activities don't trigger re-lock.
+                    val lifecycleOwner = LocalLifecycleOwner.current
+                    DisposableEffect(lifecycleOwner) {
+                        val observer = LifecycleEventObserver { _, event ->
+                            // Don't arm the re-lock when we stop because we entered
+                            // PiP — the app window is still floating, and re-locking
+                            // would slam the lock screen over it on expand.
+                            if (event == Lifecycle.Event.ON_STOP && !pipController.isInPip.value) {
+                                backgroundedAt = System.currentTimeMillis()
+                            }
+                            if (event == Lifecycle.Event.ON_START && unlocked && backgroundedAt > 0) {
+                                val elapsed = (System.currentTimeMillis() - backgroundedAt) / 1000
+                                val effectiveTimeout = maxOf(lockTimeout.seconds, 5L)
+                                if (elapsed >= effectiveTimeout) {
+                                    unlocked = false
+                                }
                             }
                         }
+                        lifecycleOwner.lifecycle.addObserver(observer)
+                        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
                     }
-                    lifecycleOwner.lifecycle.addObserver(observer)
-                    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-                }
 
-                val inPip by pipController.isInPip.collectAsState()
-                val activePipMedia by pipController.activePipMedia.collectAsState()
-                // Keep PiP params current so API 31+ auto-enters PiP when an
-                // app window is open, and disarms when it closes.
-                LaunchedEffect(activePipMedia?.id) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        runCatching { setPictureInPictureParams(buildPipParams()) }
-                    }
-                }
-
-                val pipWin = activePipMedia
-                if (inPip && pipWin != null) {
-                    // In PiP: render just the item, full-bleed on black. PiP is
-                    // view-only on Android — interaction resumes on expand. (#225)
-                    when (pipWin.kind) {
-                        PresentedMediaKind.APP_WINDOW -> {
-                            if (pipWin.sessionId != null && pipWin.host != null && pipWin.port != null) {
-                                PipAppWindow(
-                                    appWindowConnectionStore.controllerFor(
-                                        pipWin.sessionId!!, pipWin.host!!, pipWin.port!!,
-                                    ),
-                                )
-                            }
+                    val inPip by pipController.isInPip.collectAsState()
+                    val activePipMedia by pipController.activePipMedia.collectAsState()
+                    // Keep PiP params current so API 31+ auto-enters PiP when an
+                    // app window is open, and disarms when it closes.
+                    LaunchedEffect(activePipMedia?.id) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            runCatching { setPictureInPictureParams(buildPipParams()) }
                         }
-                        PresentedMediaKind.IMAGE -> pipWin.filePath?.let { PipImage(it) }
-                        PresentedMediaKind.WEB ->
-                            if (pipWin.mimeType == "application/pdf") {
-                                pipWin.filePath?.let { PipPdfFirstPage(it) }
-                            } else {
-                                pipWin.url?.let { PipWebView(it) }
-                            }
-                        else -> {}
                     }
-                } else if (biometricEnabled && !unlocked) {
-                    BiometricLockScreen(
-                        authenticator = biometricAuthenticator,
-                        onUnlocked = { unlocked = true },
-                    )
-                } else {
-                    HavenNavHost(
-                        preferencesRepository = preferencesRepository,
-                        connectionRepository = connectionRepository,
-                        sshKeyRepository = sshKeyRepository,
-                        agentUiCommandBus = agentUiCommandBus,
-                        userMessageBus = userMessageBus,
-                        mailSessionManager = mailSessionManager,
-                        mcpStatusHolder = mcpStatusHolder,
-                    )
-                    // Floats above whatever screen is active so an
-                    // agent's consent prompt is unmissable. No-op when
-                    // there are no pending requests.
-                    ConsentHost()
-                    // Same top-of-tree pattern: an agent-pushed image or
-                    // sound (present_media) floats over the active screen.
-                    sh.haven.app.agent.PresentationHost()
-                    // Backgrounded app windows dock here as draggable edge
-                    // icons; tap restores one to the PresentationHost overlay.
-                    sh.haven.app.agent.EdgeIconDock()
-                    // Same pattern for BIOMETRIC_PROTECTED keystore
-                    // fetches — the gate publishes; this host renders
-                    // BiometricPrompt; the result resumes the
-                    // suspending fetch caller.
-                    sh.haven.app.agent.BiometricGateHost()
+
+                    val pipWin = activePipMedia
+                    if (inPip && pipWin != null) {
+                        // In PiP: render just the item, full-bleed on black. PiP is
+                        // view-only on Android — interaction resumes on expand. (#225)
+                        when (pipWin.kind) {
+                            PresentedMediaKind.APP_WINDOW -> {
+                                if (pipWin.sessionId != null && pipWin.host != null && pipWin.port != null) {
+                                    PipAppWindow(
+                                        appWindowConnectionStore.controllerFor(
+                                            pipWin.sessionId!!, pipWin.host!!, pipWin.port!!,
+                                        ),
+                                    )
+                                }
+                            }
+                            PresentedMediaKind.IMAGE -> pipWin.filePath?.let { PipImage(it) }
+                            PresentedMediaKind.WEB ->
+                                if (pipWin.mimeType == "application/pdf") {
+                                    pipWin.filePath?.let { PipPdfFirstPage(it) }
+                                } else {
+                                    pipWin.url?.let { PipWebView(it) }
+                                }
+                            else -> {}
+                        }
+                    } else if (biometricEnabled && !unlocked) {
+                        BiometricLockScreen(
+                            authenticator = biometricAuthenticator,
+                            onUnlocked = { unlocked = true },
+                        )
+                    } else {
+                        HavenNavHost(
+                            preferencesRepository = preferencesRepository,
+                            connectionRepository = connectionRepository,
+                            sshKeyRepository = sshKeyRepository,
+                            agentUiCommandBus = agentUiCommandBus,
+                            userMessageBus = userMessageBus,
+                            mailSessionManager = mailSessionManager,
+                            mcpStatusHolder = mcpStatusHolder,
+                        )
+                        // Floats above whatever screen is active so an
+                        // agent's consent prompt is unmissable. No-op when
+                        // there are no pending requests.
+                        ConsentHost()
+                        // Same top-of-tree pattern: an agent-pushed image or
+                        // sound (present_media) floats over the active screen.
+                        sh.haven.app.agent.PresentationHost()
+                        // Backgrounded app windows dock here as draggable edge
+                        // icons; tap restores one to the PresentationHost overlay.
+                        sh.haven.app.agent.EdgeIconDock()
+                        // Same pattern for BIOMETRIC_PROTECTED keystore
+                        // fetches — the gate publishes; this host renders
+                        // BiometricPrompt; the result resumes the
+                        // suspending fetch caller.
+                        sh.haven.app.agent.BiometricGateHost()
+                    }
                 }
             }
         }

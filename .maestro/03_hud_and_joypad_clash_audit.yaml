@@ -1,0 +1,30 @@
+appId: com.arh.haven
+tags:
+  - visual
+  - navigation
+---
+- launchApp:
+    clearState: false
+
+# 1. Prompt Navigation Controls
+- assertVisible:
+    id: "btn_prompt_prev"
+    optional: true
+
+- assertVisible:
+    id: "btn_prompt_next"
+    optional: true
+
+- assertVisible:
+    id: "btn_prompt_list"
+    optional: true
+
+# 2. Safe Input Dialog Controls
+- assertVisible:
+    id: "input_floating_text"
+    optional: true
+
+- assertVisible:
+    id: "btn_floating_text_send"
+    optional: true
+

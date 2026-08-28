@@ -442,6 +442,105 @@ class SettingsViewModel @Inject constructor(
     val showCopyOutputButton: StateFlow<Boolean> = preferencesRepository.showCopyOutputButton
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    // --- ARH Agent & Automation Preferences ---
+    val agentMacroBarEnabled: StateFlow<Boolean> = preferencesRepository.agentMacroBarEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setAgentMacroBarEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setAgentMacroBarEnabled(enabled) }
+    }
+
+    val agentMacros: StateFlow<List<sh.haven.core.data.preferences.AgentMacro>> = preferencesRepository.agentMacros
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), sh.haven.core.data.preferences.AgentMacro.DEFAULT_MACROS)
+
+    fun saveAgentMacros(macros: List<sh.haven.core.data.preferences.AgentMacro>) {
+        viewModelScope.launch { preferencesRepository.setAgentMacros(macros) }
+    }
+
+    fun addAgentMacro(macro: sh.haven.core.data.preferences.AgentMacro) {
+        val current = agentMacros.value.toMutableList()
+        current.add(macro)
+        saveAgentMacros(current)
+    }
+
+    fun updateAgentMacro(index: Int, macro: sh.haven.core.data.preferences.AgentMacro) {
+        val current = agentMacros.value.toMutableList()
+        if (index in current.indices) {
+            current[index] = macro
+            saveAgentMacros(current)
+        }
+    }
+
+    fun deleteAgentMacro(index: Int) {
+        val current = agentMacros.value.toMutableList()
+        if (index in current.indices) {
+            current.removeAt(index)
+            saveAgentMacros(current)
+        }
+    }
+
+    fun resetAgentMacros() {
+        viewModelScope.launch { preferencesRepository.resetAgentMacros() }
+    }
+
+    val agentCodeExtractorEnabled: StateFlow<Boolean> = preferencesRepository.agentCodeExtractorEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setAgentCodeExtractorEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setAgentCodeExtractorEnabled(enabled) }
+    }
+
+    val agentHyperlinkRoutingEnabled: StateFlow<Boolean> = preferencesRepository.agentHyperlinkRoutingEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setAgentHyperlinkRoutingEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setAgentHyperlinkRoutingEnabled(enabled) }
+    }
+
+    // --- MCP Autonomous Mode & Custom Endpoints ---
+    val mcpAutoApproveEnabled: StateFlow<Boolean> = preferencesRepository.mcpAutoApproveEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun setMcpAutoApproveEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setMcpAutoApproveEnabled(enabled) }
+    }
+
+    val mcpCustomPort: StateFlow<Int> = preferencesRepository.mcpCustomPort
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 8730)
+
+    fun setMcpCustomPort(port: Int) {
+        viewModelScope.launch { preferencesRepository.setMcpCustomPort(port) }
+    }
+
+    val mcpCustomHost: StateFlow<String> = preferencesRepository.mcpCustomHost
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    fun setMcpCustomHost(host: String) {
+        viewModelScope.launch { preferencesRepository.setMcpCustomHost(host) }
+    }
+
+    // --- ARH Terminal Navigation & Safe Paste Preferences ---
+    val promptPinningTickerEnabled: StateFlow<Boolean> = preferencesRepository.promptPinningTickerEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setPromptPinningTickerEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setPromptPinningTickerEnabled(enabled) }
+    }
+
+    val safeMultiLinePasteEnabled: StateFlow<Boolean> = preferencesRepository.safeMultiLinePasteEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setSafeMultiLinePasteEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setSafeMultiLinePasteEnabled(enabled) }
+    }
+
+    val stickyViewportAnchorEnabled: StateFlow<Boolean> = preferencesRepository.stickyViewportAnchorEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setStickyViewportAnchorEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setStickyViewportAnchorEnabled(enabled) }
+    }
+
     /** #418 debug: RDP RemoteFX-Progressive upgrade-tile decoding. */
     val rdpProgressiveUpgrade: StateFlow<Boolean> = preferencesRepository.rdpProgressiveUpgrade
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)

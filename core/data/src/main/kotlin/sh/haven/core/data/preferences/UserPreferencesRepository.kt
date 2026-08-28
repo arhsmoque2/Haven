@@ -217,6 +217,179 @@ class UserPreferencesRepository @Inject constructor(
     // attach-to-first-live behaviour.
     private val mcpWireguardTunnelConfigIdKey = stringPreferencesKey("mcp_wireguard_tunnel_config_id")
 
+    // --- ARH Agent & Automation Preferences ---
+    private val agentMacroBarEnabledKey = booleanPreferencesKey("agent_macro_bar_enabled")
+    private val agentCustomMacrosKey = stringPreferencesKey("agent_custom_macros")
+    private val agentCodeExtractorEnabledKey = booleanPreferencesKey("agent_code_extractor_enabled")
+    private val agentHyperlinkRoutingKey = booleanPreferencesKey("agent_hyperlink_routing_enabled")
+
+    val agentMacroBarEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[agentMacroBarEnabledKey] ?: true
+    }
+
+    suspend fun setAgentMacroBarEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[agentMacroBarEnabledKey] = enabled
+        }
+    }
+
+    val agentMacros: Flow<List<AgentMacro>> = dataStore.data.map { prefs ->
+        val raw = prefs[agentCustomMacrosKey] ?: ""
+        AgentMacro.listFromJson(raw)
+    }
+
+    suspend fun setAgentMacros(macros: List<AgentMacro>) {
+        dataStore.edit { prefs ->
+            prefs[agentCustomMacrosKey] = AgentMacro.listToJson(macros)
+        }
+    }
+
+    suspend fun resetAgentMacros() {
+        dataStore.edit { prefs ->
+            prefs[agentCustomMacrosKey] = AgentMacro.listToJson(AgentMacro.DEFAULT_MACROS)
+        }
+    }
+
+    val agentCodeExtractorEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[agentCodeExtractorEnabledKey] ?: true
+    }
+
+    suspend fun setAgentCodeExtractorEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[agentCodeExtractorEnabledKey] = enabled
+        }
+    }
+
+    val agentHyperlinkRoutingEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[agentHyperlinkRoutingKey] ?: true
+    }
+
+    suspend fun setAgentHyperlinkRoutingEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[agentHyperlinkRoutingKey] = enabled
+        }
+    }
+
+    private val agentSavedPromptsKey = stringPreferencesKey("agent_saved_prompts")
+
+    val agentSavedPrompts: Flow<List<SavedPrompt>> = dataStore.data.map { prefs ->
+        val raw = prefs[agentSavedPromptsKey] ?: ""
+        SavedPrompt.listFromJson(raw)
+    }
+
+    suspend fun setAgentSavedPrompts(prompts: List<SavedPrompt>) {
+        dataStore.edit { prefs ->
+            prefs[agentSavedPromptsKey] = SavedPrompt.listToJson(prompts)
+        }
+    }
+
+    suspend fun resetAgentSavedPrompts() {
+        dataStore.edit { prefs ->
+            prefs[agentSavedPromptsKey] = SavedPrompt.listToJson(SavedPrompt.DEFAULT_PROMPTS)
+        }
+    }
+
+    // --- MCP Autonomous Mode & Custom Endpoint Preferences ---
+    private val mcpAutoApproveEnabledKey = booleanPreferencesKey("mcp_auto_approve_enabled")
+    private val mcpCustomPortKey = intPreferencesKey("mcp_custom_port")
+    private val mcpCustomHostKey = stringPreferencesKey("mcp_custom_host")
+    private val mcpTailscaleBindEnabledKey = booleanPreferencesKey("mcp_tailscale_bind_enabled")
+
+    val mcpAutoApproveEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[mcpAutoApproveEnabledKey] ?: false
+    }
+
+    suspend fun setMcpAutoApproveEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[mcpAutoApproveEnabledKey] = enabled
+        }
+    }
+
+    val mcpCustomPort: Flow<Int> = dataStore.data.map { prefs ->
+        prefs[mcpCustomPortKey] ?: 8730
+    }
+
+    suspend fun setMcpCustomPort(port: Int) {
+        dataStore.edit { prefs ->
+            prefs[mcpCustomPortKey] = port
+        }
+    }
+
+    val mcpCustomHost: Flow<String> = dataStore.data.map { prefs ->
+        prefs[mcpCustomHostKey] ?: ""
+    }
+
+    suspend fun setMcpCustomHost(host: String) {
+        dataStore.edit { prefs ->
+            prefs[mcpCustomHostKey] = host
+        }
+    }
+
+    val mcpTailscaleBindEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[mcpTailscaleBindEnabledKey] ?: true
+    }
+
+    suspend fun setMcpTailscaleBindEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[mcpTailscaleBindEnabledKey] = enabled
+        }
+    }
+
+    // --- Saved Workspace Repositories ---
+    private val agentSavedWorkspacesKey = stringPreferencesKey("agent_saved_workspaces")
+
+    val agentSavedWorkspaces: Flow<List<WorkspaceRepo>> = dataStore.data.map { prefs ->
+        val raw = prefs[agentSavedWorkspacesKey] ?: ""
+        WorkspaceRepo.listFromJson(raw)
+    }
+
+    suspend fun setAgentSavedWorkspaces(repos: List<WorkspaceRepo>) {
+        dataStore.edit { prefs ->
+            prefs[agentSavedWorkspacesKey] = WorkspaceRepo.listToJson(repos)
+        }
+    }
+
+    suspend fun resetAgentSavedWorkspaces() {
+        dataStore.edit { prefs ->
+            prefs[agentSavedWorkspacesKey] = WorkspaceRepo.listToJson(WorkspaceRepo.DEFAULT_REPOS)
+        }
+    }
+
+    // --- Prompt Pinning, Viewport Anchor & Safe Paste Guard ---
+    private val promptPinningTickerEnabledKey = booleanPreferencesKey("prompt_pinning_ticker_enabled")
+    private val safeMultiLinePasteEnabledKey = booleanPreferencesKey("safe_multiline_paste_enabled")
+    private val stickyViewportAnchorEnabledKey = booleanPreferencesKey("sticky_viewport_anchor_enabled")
+
+    val promptPinningTickerEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[promptPinningTickerEnabledKey] ?: true
+    }
+
+    suspend fun setPromptPinningTickerEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[promptPinningTickerEnabledKey] = enabled
+        }
+    }
+
+    val safeMultiLinePasteEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[safeMultiLinePasteEnabledKey] ?: true
+    }
+
+    suspend fun setSafeMultiLinePasteEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[safeMultiLinePasteEnabledKey] = enabled
+        }
+    }
+
+    val stickyViewportAnchorEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[stickyViewportAnchorEnabledKey] ?: true
+    }
+
+    suspend fun setStickyViewportAnchorEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[stickyViewportAnchorEnabledKey] = enabled
+        }
+    }
+
     val biometricEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[biometricEnabledKey] ?: false
     }
@@ -2159,6 +2332,7 @@ class UserPreferencesRepository @Inject constructor(
     ) {
         NONE("None", null, null, supportsScrollback = false),
         TMUX("tmux", "https://github.com/tmux/tmux/wiki", { name -> "tmux new-session -A -s $name \\; set -gq allow-passthrough on \\; set -gq mouse on" }),
+        PSMUX("psmux", "https://github.com/arhsmoque2/psmux", { name -> "psmux attach -t $name --create" }),
         ZELLIJ("zellij", "https://zellij.dev", { name -> "zellij attach $name --create" }),
         SCREEN("screen", "https://www.gnu.org/software/screen/", { name -> "screen -dRR $name" }, supportsScrollback = false),
         BYOBU("byobu", "https://www.byobu.org", { name -> "byobu new-session -A -s $name \\; set -gq mouse on" });

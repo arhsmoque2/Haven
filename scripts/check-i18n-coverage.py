@@ -11,6 +11,7 @@ This runs in the fast per-push `checks` job instead: pure stdlib XML, ~1s.
 `translatable="false"` keys are exempt, as are modules with no values-<loc>/
 directory at all (a module that ships no translations is not "drifting").
 """
+
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -27,8 +28,7 @@ def keys(path):
     return {
         el.get("name")
         for el in root
-        if el.tag in ("string", "plurals", "string-array")
-        and el.get("translatable") != "false"
+        if el.tag in ("string", "plurals", "string-array") and el.get("translatable") != "false"
     }
 
 

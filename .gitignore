@@ -72,3 +72,10 @@ core/wayland/src/main/jniLibs/*/*.so
 # rebuilt; F-Droid always built them from source, our releases never did.
 core/ffmpeg/src/main/jniLibs/*/*.so
 .grepai/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/

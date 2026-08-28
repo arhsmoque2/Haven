@@ -73,6 +73,12 @@ val buildRdpNative by tasks.registering(Exec::class) {
         "-t", "armeabi-v7a",
         "-t", "x86_64",
         "build", "--release")
+
+    onlyIf {
+        val skipped = providers.gradleProperty("skipRdpNatives").orNull == "true"
+        if (skipped) logger.lifecycle("[rdp] -PskipRdpNatives — not building")
+        !skipped
+    }
 }
 
 // No publishing block needed — consumed via includeBuild() in settings.gradle.kts

@@ -42,6 +42,7 @@ object SaveConnectionFromSession {
         return when (manager) {
             SessionManager.NONE -> null
             SessionManager.TMUX -> "tmux new -A -s $name"
+            SessionManager.PSMUX -> "psmux attach -t $name --create"
             SessionManager.ZELLIJ -> "zellij attach $name --create"
             SessionManager.SCREEN -> "screen -dRR $name"
             SessionManager.BYOBU -> "byobu new-session -A -s $name"

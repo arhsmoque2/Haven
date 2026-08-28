@@ -72,6 +72,10 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.coroutines.test)
+    // Real org.json for unit tests (android.jar's is stubbed under
+    // isReturnDefaultValues), so AgentMacro's JSON round-trip can be
+    // asserted — same fix as core/data's build.gradle.kts.
+    testImplementation("org.json:json:20260814")
 }
 
 kotlin {

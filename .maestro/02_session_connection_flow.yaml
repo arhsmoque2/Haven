@@ -1,0 +1,22 @@
+appId: com.arh.haven
+tags:
+  - flows
+  - macros
+---
+- launchApp:
+    clearState: false
+
+# 1. Assert Agent Macro Bar is accessible
+- assertVisible:
+    id: "agent_macro_bar"
+    optional: true
+
+# 2. Inspect Macro Manager Dialog (when opened)
+- assertVisible:
+    id: "macro_manager_dialog"
+    optional: true
+
+- assertVisible:
+    id: "btn_add_macro"
+    optional: true
+

@@ -29,9 +29,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.VerticalAlignBottom
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Laptop
 import androidx.compose.material.icons.filled.Mouse
@@ -441,6 +447,7 @@ fun SettingsScreen(
         androidx.compose.runtime.mutableStateListOf(
             false, false, false, false, false, false, false, false, false, false,
             false, // [10] AI agent (MCP)
+            false, // [11] Agent & Automation (ARH)
         )
     }
     Column(modifier = Modifier.fillMaxSize()) {
@@ -1321,6 +1328,149 @@ fun SettingsScreen(
         }
 
         }
+
+        // ── ARH Agent & Automation ──
+        val agentMacroBarEnabled by viewModel.agentMacroBarEnabled.collectAsState()
+        val agentMacros by viewModel.agentMacros.collectAsState()
+        val agentCodeExtractorEnabled by viewModel.agentCodeExtractorEnabled.collectAsState()
+        val agentHyperlinkRoutingEnabled by viewModel.agentHyperlinkRoutingEnabled.collectAsState()
+        val mcpAutoApproveEnabled by viewModel.mcpAutoApproveEnabled.collectAsState()
+        val mcpCustomPort by viewModel.mcpCustomPort.collectAsState()
+        val mcpCustomHost by viewModel.mcpCustomHost.collectAsState()
+        var showAgentMacroManagerDialog by remember { mutableStateOf(false) }
+        var showCustomEndpointDialog by remember { mutableStateOf(false) }
+
+        CollapsibleSettingsSection(stringResource(R.string.settings_agent_category_title), settingsExpanded[11], { settingsExpanded[11] = !settingsExpanded[11] }) {
+            SettingsToggleItem(
+                icon = Icons.Filled.Bolt,
+                title = stringResource(R.string.settings_agent_macro_bar_title),
+                subtitle = stringResource(R.string.settings_agent_macro_bar_subtitle),
+                checked = agentMacroBarEnabled,
+                onCheckedChange = viewModel::setAgentMacroBarEnabled,
+            )
+            if (agentMacroBarEnabled) {
+                SettingsItem(
+                    icon = Icons.Filled.Tune,
+                    title = stringResource(R.string.settings_agent_manage_macros_title),
+                    subtitle = stringResource(R.string.settings_agent_manage_macros_subtitle),
+                    onClick = { showAgentMacroManagerDialog = true },
+                )
+            }
+            SettingsToggleItem(
+                icon = Icons.Filled.DataObject,
+                title = stringResource(R.string.settings_agent_code_extractor_title),
+                subtitle = stringResource(R.string.settings_agent_code_extractor_subtitle),
+                checked = agentCodeExtractorEnabled,
+                onCheckedChange = viewModel::setAgentCodeExtractorEnabled,
+            )
+            SettingsToggleItem(
+                icon = Icons.Filled.Link,
+                title = stringResource(R.string.settings_agent_hyperlink_routing_title),
+                subtitle = stringResource(R.string.settings_agent_hyperlink_routing_subtitle),
+                checked = agentHyperlinkRoutingEnabled,
+                onCheckedChange = viewModel::setAgentHyperlinkRoutingEnabled,
+            )
+            SettingsToggleItem(
+                icon = Icons.Filled.Bolt,
+                title = stringResource(R.string.settings_agent_autonomous_mode_title),
+                subtitle = stringResource(R.string.settings_agent_autonomous_mode_subtitle),
+                checked = mcpAutoApproveEnabled,
+                onCheckedChange = viewModel::setMcpAutoApproveEnabled,
+            )
+            SettingsItem(
+                icon = Icons.Filled.Hub,
+                title = stringResource(R.string.settings_agent_custom_endpoint_title),
+                subtitle = stringResource(
+                    R.string.settings_agent_custom_endpoint_subtitle,
+                    if (mcpCustomHost.isNotBlank()) mcpCustomHost else "127.0.0.1",
+                    mcpCustomPort
+                ),
+                onClick = { showCustomEndpointDialog = true },
+            )
+            val promptPinningTickerEnabled by viewModel.promptPinningTickerEnabled.collectAsState()
+            val safeMultiLinePasteEnabled by viewModel.safeMultiLinePasteEnabled.collectAsState()
+            val stickyViewportAnchorEnabled by viewModel.stickyViewportAnchorEnabled.collectAsState()
+            SettingsToggleItem(
+                icon = Icons.Filled.PushPin,
+                title = "Pinned Prompt Ticker (Stream/Element)",
+                subtitle = "Shows 1-line top ticker to step between prompt landmarks",
+                checked = promptPinningTickerEnabled,
+                onCheckedChange = viewModel::setPromptPinningTickerEnabled,
+            )
+            SettingsToggleItem(
+                icon = Icons.Filled.Security,
+                title = "Safe Multi-Line Paste Guard",
+                subtitle = "Auto-routes multi-line clipboard pastes into floating editor before execution",
+                checked = safeMultiLinePasteEnabled,
+                onCheckedChange = viewModel::setSafeMultiLinePasteEnabled,
+            )
+            SettingsToggleItem(
+                icon = Icons.Filled.VerticalAlignBottom,
+                title = "Sticky Viewport Anchoring",
+                subtitle = "Freezes scroll position when reading while agent streams off-screen",
+                checked = stickyViewportAnchorEnabled,
+                onCheckedChange = viewModel::setStickyViewportAnchorEnabled,
+            )
+        }
+
+        if (showAgentMacroManagerDialog) {
+            AgentMacroManagerDialog(
+                macros = agentMacros,
+                onDismiss = { showAgentMacroManagerDialog = false },
+                onSave = { updated -> viewModel.saveAgentMacros(updated) },
+                onResetDefaults = { viewModel.resetAgentMacros() }
+            )
+        }
+
+        if (showCustomEndpointDialog) {
+            var draftHost by remember { mutableStateOf(mcpCustomHost) }
+            var draftPort by remember { mutableStateOf(mcpCustomPort.toString()) }
+
+            AlertDialog(
+                onDismissRequest = { showCustomEndpointDialog = false },
+                title = { Text(stringResource(R.string.settings_agent_custom_endpoint_dialog_title)) },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = draftHost,
+                            onValueChange = { draftHost = it },
+                            label = { Text(stringResource(R.string.settings_agent_custom_host_label)) },
+                            placeholder = { Text("e.g. 100.64.0.5 or 127.0.0.1") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = draftPort,
+                            onValueChange = { draftPort = it },
+                            label = { Text(stringResource(R.string.settings_agent_custom_port_label)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.setMcpCustomHost(draftHost.trim())
+                            val p = draftPort.toIntOrNull() ?: 8730
+                            viewModel.setMcpCustomPort(if (p in 1024..65535) p else 8730)
+                            showCustomEndpointDialog = false
+                        }
+                    ) {
+                        Text(stringResource(R.string.common_save))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showCustomEndpointDialog = false }) {
+                        Text(stringResource(R.string.common_cancel))
+                    }
+                }
+            )
+        }
+
         CollapsibleSettingsSection(stringResource(R.string.settings_section_backup), settingsExpanded[8], { settingsExpanded[8] = !settingsExpanded[8] }) {
         SettingsItem(
             icon = Icons.Filled.CloudUpload,

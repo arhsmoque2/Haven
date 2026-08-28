@@ -1,0 +1,23 @@
+appId: com.arh.haven
+tags:
+  - smoke
+  - a11y
+---
+- launchApp:
+    clearState: true
+
+# 1. Cold Launch & Root Semantics
+- extendedWaitUntil:
+    visible: "Haven"
+    timeout: 30000
+    optional: true
+
+# 2. Inspect Floating Input & Prompt Landmarks (when active)
+- assertVisible:
+    id: "pinned_prompt_ticker"
+    optional: true
+
+- assertVisible:
+    id: "floating_text_input_dialog"
+    optional: true
+

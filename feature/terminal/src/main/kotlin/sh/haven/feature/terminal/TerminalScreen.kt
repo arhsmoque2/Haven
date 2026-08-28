@@ -1,6 +1,13 @@
 package sh.haven.feature.terminal
 
 import sh.haven.core.toolbar.KeyboardToolbar
+import sh.haven.feature.terminal.arh.AgentMacroBar
+import sh.haven.feature.terminal.arh.CodeBlockParser
+import sh.haven.feature.terminal.arh.CodeExtractionSheet
+import sh.haven.feature.terminal.arh.ExtractedCodeBlock
+import sh.haven.feature.terminal.arh.PromptBookSheet
+import sh.haven.feature.terminal.arh.TerminalMarkdownExporter
+import sh.haven.core.data.preferences.SavedPrompt
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -201,7 +208,11 @@ internal fun shouldShowMouseHint(
     alreadyShown: Boolean,
 ): Boolean = appRequestedMouse && !preferenceEnabled && !alreadyShown
 
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
+@OptIn(
+    androidx.compose.foundation.layout.ExperimentalLayoutApi::class,
+    ExperimentalFoundationApi::class,
+    androidx.compose.material3.ExperimentalMaterial3Api::class,
+)
 @Composable
 fun TerminalScreen(
     navigateToProfileId: String? = null,
@@ -346,6 +357,30 @@ fun TerminalScreen(
     var vncDialogInfo by remember { mutableStateOf<VncInfo?>(null) }
     var localVncLoading by remember { mutableStateOf(false) }
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+
+    // --- ARH Agent & Automation State ---
+    val agentMacroBarEnabled by viewModel.agentMacroBarEnabled.collectAsState()
+    val agentMacros by viewModel.agentMacros.collectAsState()
+    val agentCodeExtractorEnabled by viewModel.agentCodeExtractorEnabled.collectAsState()
+    val agentSavedPrompts by viewModel.agentSavedPrompts.collectAsState()
+    val agentSavedWorkspaces by viewModel.agentSavedWorkspaces.collectAsState()
+    val sessionBookmarksMap by viewModel.sessionBookmarks.collectAsState()
+    // Hoisted above the key(activeTab.sessionId) block below so the sheets
+    // rendered at the bottom of this function (PromptBookSheet,
+    // WorkspaceRepoSelectorSheet, PinnedPromptsSheet) — which sit outside
+    // that block — can still reference the active tab and its bookmarks.
+    val activeTab = tabs.getOrNull(activeTabIndex)
+    val currentBookmarks = activeTab?.let { sessionBookmarksMap[it.sessionId].orEmpty() } ?: emptyList()
+    val promptPinningTickerEnabled by viewModel.promptPinningTickerEnabled.collectAsState()
+    val safeMultiLinePasteEnabled by viewModel.safeMultiLinePasteEnabled.collectAsState()
+    val stickyViewportAnchorEnabled by viewModel.stickyViewportAnchorEnabled.collectAsState()
+    var showCodeExtractionSheet by remember { mutableStateOf(false) }
+    var showPromptBookSheet by remember { mutableStateOf(false) }
+    var showWorkspaceRepoSheet by remember { mutableStateOf(false) }
+    var showPinnedPromptsSheet by remember { mutableStateOf(false) }
+    var currentBookmarkIndex by remember { mutableIntStateOf(0) }
+    var unreadAgentLines by remember { mutableIntStateOf(0) }
+    var extractedBlocks by remember { mutableStateOf<List<ExtractedCodeBlock>>(emptyList()) }
 
     val context = LocalContext.current
 
@@ -1606,9 +1641,17 @@ fun TerminalScreen(
                         val doPaste: () -> Unit = {
                             val text = realClipboard.getText()?.text
                             if (!text.isNullOrEmpty()) {
-                                activeTab.sendInput(
-                                    bracketPasteWrap(text, isBracketPaste).toByteArray(),
-                                )
+                                if (sh.haven.feature.terminal.arh.SafePasteGuard.shouldIntercept(text, safeMultiLinePasteEnabled)) {
+                                    // Safe Multi-Line Paste Guard (ADR-003): Auto-route multi-line text into Floating Input Dialog
+                                    textInputDrafts = HashMap(textInputDrafts).apply {
+                                        put(activeTab.sessionId, text.toString())
+                                    }
+                                    textInputDialogVisible = true
+                                } else {
+                                    activeTab.sendInput(
+                                        bracketPasteWrap(text, isBracketPaste).toByteArray(),
+                                    )
+                                }
                             }
                         }
 
@@ -1786,6 +1829,80 @@ fun TerminalScreen(
                                 modifier = Modifier.size(20.dp),
                             )
                         }
+
+                        // Live Stream Floating Jump Pill (ADR-003)
+                        val scrollCtrl = activeTab?.sessionId?.let { viewModel.terminalSessionRegistry.get(it)?.scrollController }
+                        val scrollbackPos = scrollCtrl?.scrollbackPosition ?: 0
+                        sh.haven.feature.terminal.arh.LiveStreamJumpPill(
+                            visible = sh.haven.feature.terminal.arh.LiveStreamAnchorGuard.shouldShowPill(stickyViewportAnchorEnabled, scrollbackPos),
+                            unreadLines = unreadAgentLines,
+                            onClick = {
+                                scrollCtrl?.scrollToBottom()
+                                unreadAgentLines = 0
+                            },
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(end = 12.dp, bottom = 12.dp)
+                        )
+                    }
+
+                    // --- ARH Pinned Prompt Ticker (Stream & Element X Pattern) ---
+                    val currentBookmarks = activeTab?.let { sessionBookmarksMap[it.sessionId].orEmpty() } ?: emptyList()
+                    if (promptPinningTickerEnabled && currentBookmarks.isNotEmpty() && activeTab != null) {
+                        sh.haven.feature.terminal.arh.PinnedPromptTicker(
+                            bookmarks = currentBookmarks,
+                            currentIndex = currentBookmarkIndex,
+                            onJumpToPrevious = {
+                                currentBookmarkIndex = sh.haven.feature.terminal.arh.PromptBookmarkNavigator.previousIndex(currentBookmarkIndex)
+                                val b = currentBookmarks.getOrNull(currentBookmarkIndex)
+                                if (b != null) {
+                                    val scrollCtrl = viewModel.terminalSessionRegistry.get(activeTab.sessionId)?.scrollController
+                                    scrollCtrl?.scrollToTop()
+                                    if (b.lineIndex > 0) scrollCtrl?.scrollBy(-b.lineIndex)
+                                }
+                            },
+                            onJumpToNext = {
+                                currentBookmarkIndex = sh.haven.feature.terminal.arh.PromptBookmarkNavigator.nextIndex(currentBookmarkIndex, currentBookmarks.size)
+                                val b = currentBookmarks.getOrNull(currentBookmarkIndex)
+                                if (b != null) {
+                                    val scrollCtrl = viewModel.terminalSessionRegistry.get(activeTab.sessionId)?.scrollController
+                                    scrollCtrl?.scrollToTop()
+                                    if (b.lineIndex > 0) scrollCtrl?.scrollBy(-b.lineIndex)
+                                }
+                            },
+                            onOpenListSheet = { showPinnedPromptsSheet = true }
+                        )
+                    }
+
+                    // --- ARH Agent Fast-Approval & Macro Bar ---
+                    if (agentMacroBarEnabled && activeTab != null) {
+                        AgentMacroBar(
+                            macros = agentMacros,
+                            onSendPayload = { payload ->
+                                activeTab.sendInput(payload.toByteArray(Charsets.UTF_8))
+                            },
+                            onOpenCodeExtractor = {
+                                val text = activeTab.emulator?.getSnapshotLineTexts()?.joinToString("\n") ?: ""
+                                extractedBlocks = CodeBlockParser.extract(text)
+                                showCodeExtractionSheet = true
+                            },
+                            onOpenPromptBook = {
+                                showPromptBookSheet = true
+                            },
+                            onExportTranscriptMarkdown = {
+                                val lines = activeTab.emulator.getSnapshotLineTexts()
+                                val md = TerminalMarkdownExporter.generateMarkdown(
+                                    sessionTitle = activeTab.label,
+                                    host = activeTab.profileId,
+                                    lines = lines
+                                )
+                                TerminalMarkdownExporter.shareMarkdown(context, activeTab.label, md)
+                            },
+                            onOpenRepoSelector = {
+                                showWorkspaceRepoSheet = true
+                            },
+                            onOpenSettings = onOpenToolbarSettings
+                        )
                     }
 
                     // Keep the extra key rows in fullscreen — Ctrl/Esc/arrows are
@@ -1909,6 +2026,8 @@ fun TerminalScreen(
                             onSend = {
                                 val draft = textInputDrafts[activeTab.sessionId].orEmpty()
                                 if (draft.isNotEmpty()) {
+                                    val currentLine = activeTab.emulator?.getSnapshotLineTexts()?.size ?: 0
+                                    viewModel.addPromptBookmark(activeTab.sessionId, currentLine, draft)
                                     // Same bracket-wrap path as paste: an
                                     // embedded newline must arrive as pasted
                                     // text (mode 2004), not execute as a
@@ -1933,6 +2052,66 @@ fun TerminalScreen(
                 }
             }
         }
+    }
+
+    if (showCodeExtractionSheet) {
+        CodeExtractionSheet(
+            blocks = extractedBlocks,
+            onDismiss = { showCodeExtractionSheet = false }
+        )
+    }
+
+    if (showPromptBookSheet) {
+        PromptBookSheet(
+            prompts = agentSavedPrompts,
+            onInjectToInput = { promptContent ->
+                // Inject prompt into floating text input draft and display dialog so user can edit before Enter
+                if (activeTab != null) {
+                    textInputDrafts = HashMap(textInputDrafts).apply {
+                        put(activeTab.sessionId, promptContent)
+                    }
+                    textInputDialogVisible = true
+                }
+            },
+            onSendDirectly = { promptContent ->
+                if (activeTab != null) {
+                    val currentLine = activeTab.emulator?.getSnapshotLineTexts()?.size ?: 0
+                    viewModel.addPromptBookmark(activeTab.sessionId, currentLine, promptContent)
+                    activeTab.sendInput("$promptContent\n".toByteArray(Charsets.UTF_8))
+                }
+            },
+            onAddPrompt = { newPrompt -> viewModel.addAgentPrompt(newPrompt) },
+            onDeletePrompt = { index -> viewModel.deleteAgentPrompt(index) },
+            onDismiss = { showPromptBookSheet = false }
+        )
+    }
+
+    if (showWorkspaceRepoSheet) {
+        sh.haven.feature.terminal.arh.WorkspaceRepoSelectorSheet(
+            repos = agentSavedWorkspaces,
+            onDismissRequest = { showWorkspaceRepoSheet = false },
+            onSelectRepo = { repo ->
+                val cmd = "export HAVEN_TARGET_REPO=\"${repo.name}\" HAVEN_WORKSPACE_PATH=\"${repo.localPath}\" HAVEN_GIT_BRANCH=\"${repo.branch}\"; cd \"${repo.localPath}\" && echo \"=== [Haven Agent Bridge] Target Repo: ${repo.name} (${'$'}PWD) ===\"\n"
+                activeTab?.sendInput(cmd.toByteArray(Charsets.UTF_8))
+            },
+            onSaveRepos = { updated -> viewModel.saveAgentWorkspaces(updated) }
+        )
+    }
+
+    if (showPinnedPromptsSheet && activeTab != null) {
+        sh.haven.feature.terminal.arh.PinnedPromptsSheet(
+            bookmarks = currentBookmarks,
+            onDismissRequest = { showPinnedPromptsSheet = false },
+            onJumpToBookmark = { bookmark ->
+                val scrollCtrl = viewModel.terminalSessionRegistry.get(activeTab.sessionId)?.scrollController
+                scrollCtrl?.scrollToTop()
+                if (bookmark.lineIndex > 0) scrollCtrl?.scrollBy(-bookmark.lineIndex)
+                currentBookmarkIndex = currentBookmarks.indexOfFirst { it.id == bookmark.id }.coerceAtLeast(0)
+            },
+            onDeleteBookmark = { bookmark ->
+                viewModel.deletePromptBookmark(activeTab.sessionId, bookmark.id)
+            }
+        )
     }
 }
 

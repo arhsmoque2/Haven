@@ -532,4 +532,33 @@
 Every password, passphrase and secret already stored in Haven will need to be entered again. They are already unreadable — the key that protected them is gone — so this recovers the app rather than losing anything further.</string>
     <string name="settings_credential_reset_confirm">Repair</string>
     <string name="settings_credential_reset_cancel">Cancel</string>
+
+    <!-- ARH Agent & Automation (#ARH-PORT) -->
+    <string name="settings_agent_category_title" translatable="false">Agent &amp; Automation (ARH)</string>
+    <string name="settings_agent_macro_bar_title" translatable="false">Agent fast-approval &amp; macro rail</string>
+    <string name="settings_agent_macro_bar_subtitle" translatable="false">Show 1-tap consent ([Approve (y)], [Reject (n)]) and macro chips above keyboard</string>
+    <string name="settings_agent_code_extractor_title" translatable="false">1-Tap code &amp; diff extraction</string>
+    <string name="settings_agent_code_extractor_subtitle" translatable="false">Scan terminal scrollback for markdown code fences and git diffs</string>
+    <string name="settings_agent_hyperlink_routing_title" translatable="false">Smart URI &amp; file link routing</string>
+    <string name="settings_agent_hyperlink_routing_subtitle" translatable="false">Open file:/// and project links directly in external viewers</string>
+    <string name="settings_agent_manage_macros_title" translatable="false">Configure agent macros</string>
+    <string name="settings_agent_manage_macros_subtitle" translatable="false">Add, edit, reorder, or delete custom agent fast-action buttons</string>
+    <string name="settings_agent_macro_dialog_title" translatable="false">Agent Macros Manager</string>
+    <string name="settings_agent_add_macro" translatable="false">Add Macro</string>
+    <string name="settings_agent_edit_macro" translatable="false">Edit Macro</string>
+    <string name="settings_agent_macro_label" translatable="false">Button Label (e.g. Approve)</string>
+    <string name="settings_agent_macro_payload" translatable="false">Command / Sequence (e.g. y\\n)</string>
+    <string name="settings_agent_macro_destructive" translatable="false">Mark as destructive (Red tint)</string>
+
+    <string name="settings_agent_autonomous_mode_title" translatable="false">Autonomous Agent Mode (Auto-Approve)</string>
+    <string name="settings_agent_autonomous_mode_subtitle" translatable="false">Bypass consent sheets for device agents, and auto-approve tool calls for authenticated paired LAN &amp; Tailscale agents</string>
+    <string name="settings_agent_custom_endpoint_title" translatable="false">Custom Endpoint Host &amp; Port</string>
+    <string name="settings_agent_custom_endpoint_subtitle" translatable="false">Configure Tailscale IP/domain (%1$s) and port (%2$d) for remote agents</string>
+    <string name="settings_agent_custom_endpoint_dialog_title" translatable="false">Custom MCP Endpoint</string>
+    <string name="settings_agent_custom_host_label" translatable="false">Host / Tailscale IP (e.g. 100.64.0.5 or domain)</string>
+    <string name="settings_agent_custom_port_label" translatable="false">Port (Default: 8730)</string>
+    <string name="settings_agent_macro_move_up" translatable="false">Move up</string>
+    <string name="settings_agent_macro_move_down" translatable="false">Move down</string>
+    <string name="settings_agent_macro_edit" translatable="false">Edit</string>
+    <string name="settings_agent_macro_delete" translatable="false">Delete</string>
 </resources>

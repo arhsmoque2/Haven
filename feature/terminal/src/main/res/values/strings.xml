@@ -161,4 +161,53 @@
     <string name="terminal_vnc_depth_16bit">16-bit colour (faster)</string>
     <string name="terminal_vnc_depth_256">256 colours (lowest bandwidth)</string>
     <string name="terminal_mouse_requested_but_disabled">This app is asking for the mouse. Turn on “Mouse input in TUI apps” in Settings → Terminal to use it.</string>
+
+    <!-- ARH Mobile Agent Suite (#ARH-PORT) -->
+    <string name="terminal_workspace_title" translatable="false">📁 Workspace &amp; Repositories</string>
+    <string name="terminal_workspace_subtitle" translatable="false">Select a repo to inject agent environment &amp; navigate</string>
+    <string name="terminal_workspace_add_button" translatable="false">Add Workspace</string>
+    <string name="terminal_workspace_search_placeholder" translatable="false">Search repositories or paths…</string>
+    <string name="terminal_workspace_search_clear" translatable="false">Clear search</string>
+    <string name="terminal_workspace_delete_content_desc" translatable="false">Delete workspace</string>
+    <string name="terminal_workspace_dialog_title" translatable="false">Add Project Workspace</string>
+    <string name="terminal_workspace_dialog_name_label" translatable="false">Workspace / Project Name</string>
+    <string name="terminal_workspace_dialog_name_hint" translatable="false">e.g. Haven Mobile</string>
+    <string name="terminal_workspace_dialog_path_label" translatable="false">Local Working Directory Path</string>
+    <string name="terminal_workspace_dialog_path_hint" translatable="false">e.g. ~/repos/Haven or D:/_ARH-AGENT-OS</string>
+    <string name="terminal_workspace_dialog_git_url_label" translatable="false">Git Remote URL (Optional)</string>
+    <string name="terminal_workspace_dialog_git_url_hint" translatable="false">e.g. https://github.com/arhsmoque2/Haven.git</string>
+    <string name="terminal_workspace_dialog_branch_label" translatable="false">Default Branch (Optional)</string>
+    <string name="terminal_workspace_dialog_branch_hint" translatable="false">e.g. main</string>
+    <string name="terminal_workspace_dialog_desc_label" translatable="false">Description (Optional)</string>
+
+    <string name="terminal_pinned_prompts_title" translatable="false">Pinned Prompts &amp; Landmarks (%1$d)</string>
+    <string name="terminal_pinned_prompts_search_placeholder" translatable="false">Search pinned prompts…</string>
+    <string name="terminal_pinned_prompts_search_clear" translatable="false">Clear search</string>
+    <string name="terminal_pinned_prompts_unpin" translatable="false">Unpin</string>
+    <string name="terminal_pinned_prompts_jump" translatable="false">Jump to context line</string>
+
+    <string name="terminal_promptbook_new_prompt" translatable="false">New Prompt</string>
+    <string name="terminal_promptbook_search_placeholder" translatable="false">Search prompt templates…</string>
+    <string name="terminal_promptbook_delete" translatable="false">Delete Prompt</string>
+    <string name="terminal_promptbook_inject_edit" translatable="false">Inject &amp; Edit</string>
+    <string name="terminal_promptbook_send_enter" translatable="false">Send + Enter</string>
+    <string name="terminal_promptbook_dialog_title" translatable="false">Create Saved Prompt</string>
+    <string name="terminal_promptbook_dialog_title_label" translatable="false">Title (e.g. Code Review)</string>
+    <string name="terminal_promptbook_dialog_category_label" translatable="false">Category (e.g. Dev, Git, Agent)</string>
+    <string name="terminal_promptbook_dialog_content_label" translatable="false">Prompt Content</string>
+
+    <string name="terminal_pinned_ticker_prev" translatable="false">Previous Prompt Landmark</string>
+    <string name="terminal_pinned_ticker_next" translatable="false">Next Prompt Landmark</string>
+    <string name="terminal_pinned_ticker_open_sheet" translatable="false">Open Pinned Prompts Sheet</string>
+
+    <string name="terminal_macro_workspace_repos" translatable="false">Workspace Repositories</string>
+    <string name="terminal_macro_extract_code" translatable="false">Extract Code Blocks</string>
+    <string name="terminal_macro_prompt_book" translatable="false">Prompt Book</string>
+    <string name="terminal_macro_export_transcript" translatable="false">Export Transcript Markdown</string>
+    <string name="terminal_macro_configure" translatable="false">Configure Macros</string>
+
+    <string name="terminal_markdown_saved_to_downloads" translatable="false">Saved to Downloads: %1$s</string>
+    <string name="terminal_markdown_save_failed" translatable="false">Failed to save file: %1$s</string>
+
+    <string name="terminal_code_copied_to_clipboard" translatable="false">Copied to clipboard</string>
 </resources>
